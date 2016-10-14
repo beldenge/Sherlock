@@ -52,6 +52,20 @@ public class NGram {
 	}
 
 	/**
+	 * @param nGram
+	 *            the nGram to set
+	 * @param numWords
+	 *            the numWords to set
+	 * @param frequencyWeight
+	 *            the frequencyWeight to set
+	 */
+	public NGram(String nGram, int numWords, long frequencyWeight) {
+		this.nGram = nGram;
+		this.numWords = numWords;
+		this.frequencyWeight = frequencyWeight;
+	}
+
+	/**
 	 * @return the id
 	 */
 	public String getId() {

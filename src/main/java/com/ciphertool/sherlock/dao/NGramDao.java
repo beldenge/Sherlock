@@ -19,18 +19,22 @@
 
 package com.ciphertool.sherlock.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import com.ciphertool.sherlock.entities.NGram;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 
 public class NGramDao {
 	private Logger log = LoggerFactory.getLogger(getClass());
@@ -38,68 +42,49 @@ public class NGramDao {
 	private MongoOperations mongoOperations;
 
 	/**
-	 * Returns a list of all NGrams.
+	 * Returns a list of all NGrams.  We have to use the low-level MongoDB API because otherwise the query takes forever due to the limitation of Spring Data not providing cursor functionality.
 	 */
-	public List<NGram> findAll() {
-		List<NGram> result = mongoOperations.findAll(NGram.class);
+	public List<NGram> findAllByNumWords(int numWordsQueryParam) {
+		DBCollection collection = mongoOperations.getCollection(mongoOperations.getCollectionName(NGram.class));
+		
+		DBCursor cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam));
+	
+		List<NGram> results = new ArrayList<NGram>();
+		while(cursor.hasNext()) {
+		    DBObject next = cursor.next();
 
-		return result;
-	}
-
-	/**
-	 * Returns a list of all NGrams.
-	 */
-	public List<NGram> findAllByNumWords(int numWords) {
-		Query query = new Query();
-		query.addCriteria(Criteria.where("numWords").is(numWords));
-
-		List<NGram> result = mongoOperations.find(query,  NGram.class);
-
-		return result;
-	}
-
-	/**
-	 * Returns a list of top N NGrams.
-	 */
-	public List<NGram> findTopMostFrequent(int top) {
-		Query query = new Query().limit(top).with(new Sort(Sort.Direction.DESC, "frequencyWeight"));
-		List<NGram> result = mongoOperations.find(query, NGram.class); 
-
-		return result;
-	}
-
-	/**
-	 * Returns a list of top N NGrams.
-	 */
-	public List<NGram> findTopMostFrequentByNumWords(int numWords, int top) {
-		Query query = new Query().limit(top).with(new Sort(Sort.Direction.DESC, "frequencyWeight"));
-		query.addCriteria(Criteria.where("numWords").is(numWords));
-
-		List<NGram> result = mongoOperations.find(query, NGram.class); 
-
-		return result;
-	}
-
-	/**
-	 * Finds all occurrences of a particular NGram by its String value.
-	 * 
-	 * @param nGram
-	 *            the String value of the nGram to find
-	 * @return the List of matching NGrams
-	 */
-	public List<NGram> findByNGramString(String nGram) {
-		if (nGram == null) {
-			log.warn("Attempted to find NGram by null String.  Unable to continue, thus returning null.");
-
-			return null;
+		    String nGram = (String) next.get("nGram");
+		    Integer numWords = (Integer) next.get("numWords");
+		    Long frequencyWeight = (Long) next.get("frequencyWeight");
+		    
+		    results.add(new NGram(nGram, numWords, frequencyWeight));
 		}
 
-		Query query = new Query();
-		query.addCriteria(Criteria.where("nGram").is(nGram));
+		return results;
+	}
 
-		List<NGram> result = mongoOperations.find(query, NGram.class); 
+	/**
+	 * Returns a list of top N NGrams.  We have to use the low-level MongoDB API because otherwise the query takes forever due to the limitation of Spring Data not providing cursor functionality.
+	 */
+	public List<NGram> findTopMostFrequentByNumWords(int numWordsQueryParam, int top) {
+		DBCollection collection = mongoOperations.getCollection(mongoOperations.getCollectionName(NGram.class));
+		
+		DBCursor cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam));
+		cursor.sort(new BasicDBObject("frequencyWeight", -1));
+		cursor.limit(top);
+		
+		List<NGram> results = new ArrayList<NGram>();
+		while(cursor.hasNext()) {
+		    DBObject next = cursor.next();
 
-		return result;
+		    String nGram = (String) next.get("nGram");
+		    Integer numWords = (Integer) next.get("numWords");
+		    Long frequencyWeight = (Long) next.get("frequencyWeight");
+		    
+		    results.add(new NGram(nGram, numWords, frequencyWeight));
+		}
+
+		return results;
 	}
 
 	/**
