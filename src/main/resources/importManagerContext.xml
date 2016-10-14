@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Copyright 2015 George Belden
+
+This file is part of Sherlock.
+
+Sherlock is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Sherlock is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with Sherlock.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       		http://www.springframework.org/schema/beans/spring-beans.xsd
+       		http://www.springframework.org/schema/context
+       		http://www.springframework.org/schema/context/spring-context.xsd
+       		http://www.springframework.org/schema/tx 
+     		http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<import resource="classpath*:bootstrapContext.xml" />
+
+	<bean class="com.ciphertool.sherlock.dao.WordDao" id="wordDao">
+		<property name="mongoTemplate" ref="mongoTemplate" />
+	</bean>
+	
+	<bean class="com.ciphertool.sherlock.dao.NGramDao" id="nGramDao">
+		<property name="mongoTemplate" ref="mongoTemplate" />
+	</bean>
+
+	<bean class="com.ciphertool.sherlock.etl.parsers.PartOfSpeechFileParser" id="partOfSpeechfileParser" />
+
+	<bean class="com.ciphertool.sherlock.etl.importers.WordListImporterImpl" id="wordListImporter">
+		<property name="wordDao" ref="wordDao" />
+		<property name="persistenceBatchSize" value="${persistence.batchSize}" />
+		<property name="concurrencyBatchSize" value="${concurrency.batchSize}" />
+		<property name="fileParser" ref="partOfSpeechfileParser" />
+		<property name="taskExecutor" ref="taskExecutor" />
+		<property name="fileNames" value="${wordlist.file.locations}" />
+	</bean>
+
+	<bean class="com.ciphertool.sherlock.etl.parsers.FrequencyFileParser" id="frequencyFileParser" />
+
+	<bean class="com.ciphertool.sherlock.etl.importers.FrequencyListImporterImpl" id="frequencyListImporter">
+		<property name="wordDao" ref="wordDao" />
+		<property name="persistenceBatchSize" value="${persistence.batchSize}" />
+		<property name="concurrencyBatchSize" value="${concurrency.batchSize}" />
+		<property name="fileParser" ref="frequencyFileParser" />
+		<property name="taskExecutor" ref="taskExecutor" />
+		<property name="fileNames" value="${frequency.file.locations}" />
+	</bean>
+	
+	<bean class="com.ciphertool.sherlock.etl.parsers.NGramFileParser" id="nGramFileParser" />
+
+	<bean class="com.ciphertool.sherlock.etl.importers.NGramListImporterImpl" id="nGramListImporter">
+		<property name="nGramDao" ref="nGramDao" />
+		<property name="persistenceBatchSize" value="${persistence.batchSize}" />
+		<property name="concurrencyBatchSize" value="${concurrency.batchSize}" />
+		<property name="fileParser" ref="nGramFileParser" />
+		<property name="taskExecutor" ref="taskExecutor" />
+		<property name="twoGramFileName" value="${nGram.two.file.location}" />
+		<property name="threeGramFileName" value="${nGram.three.file.location}" />
+		<property name="fourGramFileName" value="${nGram.four.file.location}" />
+		<property name="fiveGramFileName" value="${nGram.five.file.location}" />
+	</bean>
+
+	<bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="${taskExecutor.corePoolSize}" />
+		<property name="maxPoolSize" value="${taskExecutor.maxPoolSize}" />
+		<!-- queueCapacity should be the same as populationSize, or we will get 
+			rejected execution exceptions -->
+		<property name="queueCapacity" value="${taskExecutor.queueCapacity}" />
+		<property name="keepAliveSeconds" value="5" />
+		<property name="allowCoreThreadTimeOut" value="true" />
+	</bean>
+
+</beans>
