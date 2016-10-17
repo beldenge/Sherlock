@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class MatchNode {
-	private Match self;
-	private List<MatchNode> children = new ArrayList<MatchNode>();
+	private Match			self;
+	private List<MatchNode>	children	= new ArrayList<MatchNode>();
 
 	/**
 	 * @param self

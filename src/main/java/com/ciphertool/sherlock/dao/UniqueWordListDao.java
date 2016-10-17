@@ -30,9 +30,9 @@ import org.slf4j.LoggerFactory;
 import com.ciphertool.sherlock.entities.Word;
 
 public class UniqueWordListDao implements WordListDao {
-	private static Logger log = LoggerFactory.getLogger(UniqueWordListDao.class);
+	private static Logger	log			= LoggerFactory.getLogger(UniqueWordListDao.class);
 
-	private List<Word> wordList = new ArrayList<Word>();
+	private List<Word>		wordList	= new ArrayList<Word>();
 
 	/**
 	 * Constructor requiring a WordDao and top number of Words.

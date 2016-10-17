@@ -37,51 +37,53 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 
 public class NGramDao {
-	private Logger log = LoggerFactory.getLogger(getClass());
+	private Logger			log	= LoggerFactory.getLogger(getClass());
 
-	private MongoOperations mongoOperations;
+	private MongoOperations	mongoOperations;
 
 	/**
-	 * Returns a list of all NGrams.  We have to use the low-level MongoDB API because otherwise the query takes forever due to the limitation of Spring Data not providing cursor functionality.
+	 * Returns a list of all NGrams. We have to use the low-level MongoDB API because otherwise the query takes forever
+	 * due to the limitation of Spring Data not providing cursor functionality.
 	 */
 	public List<NGram> findAllByNumWords(int numWordsQueryParam) {
 		DBCollection collection = mongoOperations.getCollection(mongoOperations.getCollectionName(NGram.class));
-		
-		DBCursor cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam));
-	
-		List<NGram> results = new ArrayList<NGram>();
-		while(cursor.hasNext()) {
-		    DBObject next = cursor.next();
 
-		    String nGram = (String) next.get("nGram");
-		    Integer numWords = (Integer) next.get("numWords");
-		    Long frequencyWeight = (Long) next.get("frequencyWeight");
-		    
-		    results.add(new NGram(nGram, numWords, frequencyWeight));
+		DBCursor cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam));
+
+		List<NGram> results = new ArrayList<NGram>();
+		while (cursor.hasNext()) {
+			DBObject next = cursor.next();
+
+			String nGram = (String) next.get("nGram");
+			Integer numWords = (Integer) next.get("numWords");
+			Long frequencyWeight = (Long) next.get("frequencyWeight");
+
+			results.add(new NGram(nGram, numWords, frequencyWeight));
 		}
 
 		return results;
 	}
 
 	/**
-	 * Returns a list of top N NGrams.  We have to use the low-level MongoDB API because otherwise the query takes forever due to the limitation of Spring Data not providing cursor functionality.
+	 * Returns a list of top N NGrams. We have to use the low-level MongoDB API because otherwise the query takes
+	 * forever due to the limitation of Spring Data not providing cursor functionality.
 	 */
 	public List<NGram> findTopMostFrequentByNumWords(int numWordsQueryParam, int top) {
 		DBCollection collection = mongoOperations.getCollection(mongoOperations.getCollectionName(NGram.class));
-		
+
 		DBCursor cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam));
 		cursor.sort(new BasicDBObject("frequencyWeight", -1));
 		cursor.limit(top);
-		
-		List<NGram> results = new ArrayList<NGram>();
-		while(cursor.hasNext()) {
-		    DBObject next = cursor.next();
 
-		    String nGram = (String) next.get("nGram");
-		    Integer numWords = (Integer) next.get("numWords");
-		    Long frequencyWeight = (Long) next.get("frequencyWeight");
-		    
-		    results.add(new NGram(nGram, numWords, frequencyWeight));
+		List<NGram> results = new ArrayList<NGram>();
+		while (cursor.hasNext()) {
+			DBObject next = cursor.next();
+
+			String nGram = (String) next.get("nGram");
+			Integer numWords = (Integer) next.get("numWords");
+			Long frequencyWeight = (Long) next.get("frequencyWeight");
+
+			results.add(new NGram(nGram, numWords, frequencyWeight));
 		}
 
 		return results;
@@ -142,10 +144,10 @@ public class NGramDao {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("nGram").is(nGram.getNGram()));
 		query.addCriteria(Criteria.where("numWords").is(nGram.getNumWords()));
-		
+
 		Update update = new Update();
 		update.set("frequencyWeight", nGram.getFrequencyWeight());
-		
+
 		mongoOperations.updateFirst(query, update, NGram.class);
 
 		return true;
@@ -169,13 +171,13 @@ public class NGramDao {
 			Query query = new Query();
 			query.addCriteria(Criteria.where("nGram").is(nGram.getNGram()));
 			query.addCriteria(Criteria.where("numWords").is(nGram.getNumWords()));
-			
+
 			Update update = new Update();
 			update.set("frequencyWeight", nGram.getFrequencyWeight());
-			
+
 			mongoOperations.updateFirst(query, update, NGram.class);
 		}
-		
+
 		return true;
 	}
 

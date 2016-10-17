@@ -42,9 +42,9 @@ import org.springframework.data.mongodb.core.query.Update;
 import com.ciphertool.sherlock.entities.Word;
 
 public class WordDao {
-	private Logger log = LoggerFactory.getLogger(getClass());
+	private Logger			log	= LoggerFactory.getLogger(getClass());
 
-	private MongoOperations mongoOperations;
+	private MongoOperations	mongoOperations;
 
 	/**
 	 * Returns a list of all Words, so words will be duplicated if they have multiple parts of speech.
@@ -60,7 +60,7 @@ public class WordDao {
 	 */
 	public List<Word> findTopByFrequency(int top) {
 		Query query = new Query().limit(top).with(new Sort(Sort.Direction.DESC, "frequencyWeight"));
-		List<Word> result = mongoOperations.find(query, Word.class); 
+		List<Word> result = mongoOperations.find(query, Word.class);
 
 		return result;
 	}
@@ -73,9 +73,10 @@ public class WordDao {
 		query.fields().include("word");
 		query.fields().include("frequencyWeight");
 
-		Set<Word> result = new HashSet<Word>(mongoOperations.find(query, Word.class)); 
+		Set<Word> result = new HashSet<Word>(mongoOperations.find(query, Word.class));
 
-		// We have to convert between set and list in order to achieve "distinct" functionality not supported by mongoOperations
+		// We have to convert between set and list in order to achieve "distinct" functionality not supported by
+		// mongoOperations
 		return new ArrayList<Word>(result);
 	}
 
@@ -85,7 +86,7 @@ public class WordDao {
 	public List<Word> findTopUniqueWordsByFrequency(int top) {
 		Aggregation aggregation = Aggregation.newAggregation(sort(Sort.Direction.DESC, "frequencyWeight"), group("word", "frequencyWeight"), limit(top));
 
-		AggregationResults<Word> result = mongoOperations.aggregate(aggregation, Word.class, Word.class); 
+		AggregationResults<Word> result = mongoOperations.aggregate(aggregation, Word.class, Word.class);
 
 		return result.getMappedResults();
 	}
@@ -107,7 +108,7 @@ public class WordDao {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("word").is(word));
 
-		List<Word> words = mongoOperations.find(query,  Word.class);
+		List<Word> words = mongoOperations.find(query, Word.class);
 
 		return words;
 	}
@@ -146,7 +147,7 @@ public class WordDao {
 		}
 
 		mongoOperations.insert(wordBatch, Word.class);
-		
+
 		return true;
 	}
 
@@ -167,10 +168,10 @@ public class WordDao {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("word").is(word.getWord()));
 		query.addCriteria(Criteria.where("partOfSpeech").is(word.getPartOfSpeech()));
-		
+
 		Update update = new Update();
 		update.set("frequencyWeight", word.getFrequencyWeight());
-		
+
 		mongoOperations.updateFirst(query, update, Word.class);
 
 		return true;
@@ -194,10 +195,10 @@ public class WordDao {
 			Query query = new Query();
 			query.addCriteria(Criteria.where("word").is(word.getWord()));
 			query.addCriteria(Criteria.where("partOfSpeech").is(word.getPartOfSpeech()));
-			
+
 			Update update = new Update();
 			update.set("frequencyWeight", word.getFrequencyWeight());
-			
+
 			mongoOperations.updateFirst(query, update, Word.class);
 		}
 

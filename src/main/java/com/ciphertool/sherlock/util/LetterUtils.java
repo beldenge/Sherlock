@@ -22,9 +22,9 @@ package com.ciphertool.sherlock.util;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class LetterUtils {
-	private static final int MINIMUM_ASCII_VALUE = 97;
-	private static final int MAXIMUM_ASCII_VALUE = 122;
-	private static final int NUMBER_OF_LETTERS = 26;
+	private static final int	MINIMUM_ASCII_VALUE	= 97;
+	private static final int	MAXIMUM_ASCII_VALUE	= 122;
+	private static final int	NUMBER_OF_LETTERS	= 26;
 
 	/**
 	 * Gets a random ASCII value for all lower case English letters and returns the appropriate char.

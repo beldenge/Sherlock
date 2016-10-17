@@ -23,8 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class IndexNode {
-	private boolean isTerminal;
-	private Map<Character, IndexNode> letterMap = new HashMap<Character, IndexNode>();
+	private boolean						isTerminal;
+	private Map<Character, IndexNode>	letterMap	= new HashMap<Character, IndexNode>();
 
 	/**
 	 * Default no-args constructor

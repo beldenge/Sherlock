@@ -40,12 +40,12 @@ import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
  * @author George Belden
  */
 public class IndexedWordMapDao implements WordMapDao {
-	private static Logger log = LoggerFactory.getLogger(IndexedWordMapDao.class);
+	private static Logger							log	= LoggerFactory.getLogger(IndexedWordMapDao.class);
 
-	private Map<PartOfSpeechType, ArrayList<Word>> partOfSpeechWordMap;
-	private Map<Integer, ArrayList<Word>> lengthWordMap;
-	private Map<PartOfSpeechType, int[]> partOfSpeechFrequencyMap;
-	private Map<Integer, int[]> lengthFrequencyMap;
+	private Map<PartOfSpeechType, ArrayList<Word>>	partOfSpeechWordMap;
+	private Map<Integer, ArrayList<Word>>			lengthWordMap;
+	private Map<PartOfSpeechType, int[]>			partOfSpeechFrequencyMap;
+	private Map<Integer, int[]>						lengthFrequencyMap;
 
 	/**
 	 * Constructor with autowired dependencies.
@@ -187,8 +187,7 @@ public class IndexedWordMapDao implements WordMapDao {
 	 *            the Map of Words keyed by PartOfSpeech
 	 * @return the index Map keyed by length
 	 */
-	protected static Map<PartOfSpeechType, int[]> buildIndexedFrequencyMapByPartOfSpeech(
-			Map<PartOfSpeechType, ArrayList<Word>> byPartOfSpeech) {
+	protected static Map<PartOfSpeechType, int[]> buildIndexedFrequencyMapByPartOfSpeech(Map<PartOfSpeechType, ArrayList<Word>> byPartOfSpeech) {
 		if (byPartOfSpeech == null || byPartOfSpeech.isEmpty()) {
 			throw new IllegalArgumentException(
 					"Error indexing PartOfSpeech map.  The supplied Map of Words cannot be null or empty.");

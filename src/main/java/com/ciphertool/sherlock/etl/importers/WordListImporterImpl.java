@@ -36,16 +36,16 @@ import com.ciphertool.sherlock.entities.Word;
 import com.ciphertool.sherlock.etl.parsers.FileParser;
 
 public class WordListImporterImpl implements WordListImporter {
-	private static Logger log = LoggerFactory.getLogger(WordListImporterImpl.class);
+	private static Logger		log			= LoggerFactory.getLogger(WordListImporterImpl.class);
 
-	private TaskExecutor taskExecutor;
-	private FileParser<Word> partOfSpeechFileParser;
-	private WordDao wordDao;
-	private int persistenceBatchSize;
-	private AtomicInteger rowCount = new AtomicInteger(0);
-	private int concurrencyBatchSize;
+	private TaskExecutor		taskExecutor;
+	private FileParser<Word>	partOfSpeechFileParser;
+	private WordDao				wordDao;
+	private int					persistenceBatchSize;
+	private AtomicInteger		rowCount	= new AtomicInteger(0);
+	private int					concurrencyBatchSize;
 
-	private String[] fileNames;
+	private String[]			fileNames;
 
 	@Override
 	public void importWordList() {

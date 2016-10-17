@@ -33,12 +33,12 @@ import com.ciphertool.sherlock.entities.Word;
 import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
 
 public class FrequencyFileParser implements FileParser<Word> {
-	private static Logger log = LoggerFactory.getLogger(FrequencyFileParser.class);
+	private static Logger		log				= LoggerFactory.getLogger(FrequencyFileParser.class);
 
 	/**
 	 * We are expecting the fields to be tab-delimited in the file.
 	 */
-	private static final String FIELD_DELIMITER = "\t";
+	private static final String	FIELD_DELIMITER	= "\t";
 
 	@Override
 	public List<Word> parseFile(String fileName) {

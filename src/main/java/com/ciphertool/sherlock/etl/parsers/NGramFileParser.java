@@ -32,12 +32,12 @@ import org.slf4j.LoggerFactory;
 import com.ciphertool.sherlock.entities.NGram;
 
 public class NGramFileParser implements FileParser<NGram> {
-	private static Logger log = LoggerFactory.getLogger(NGramFileParser.class);
+	private static Logger		log				= LoggerFactory.getLogger(NGramFileParser.class);
 
 	/**
 	 * We are expecting the fields to be tab-delimited in the file.
 	 */
-	private static final String FIELD_DELIMITER = "\t";
+	private static final String	FIELD_DELIMITER	= "\t";
 
 	@Override
 	public List<NGram> parseFile(String fileName) {

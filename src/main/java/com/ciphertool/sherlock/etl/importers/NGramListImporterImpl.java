@@ -38,19 +38,19 @@ import com.ciphertool.sherlock.entities.NGram;
 import com.ciphertool.sherlock.etl.parsers.FileParser;
 
 public class NGramListImporterImpl implements NGramListImporter {
-	private static Logger log = LoggerFactory.getLogger(NGramListImporterImpl.class);
+	private static Logger		log			= LoggerFactory.getLogger(NGramListImporterImpl.class);
 
-	private TaskExecutor taskExecutor;
-	private FileParser<NGram> nGramFileParser;
-	private NGramDao nGramDao;
-	private int persistenceBatchSize;
-	private AtomicInteger rowCount = new AtomicInteger(0);
-	private int concurrencyBatchSize;
+	private TaskExecutor		taskExecutor;
+	private FileParser<NGram>	nGramFileParser;
+	private NGramDao			nGramDao;
+	private int					persistenceBatchSize;
+	private AtomicInteger		rowCount	= new AtomicInteger(0);
+	private int					concurrencyBatchSize;
 
-	private String twoGramFileName;
-	private String threeGramFileName;
-	private String fourGramFileName;
-	private String fiveGramFileName;
+	private String				twoGramFileName;
+	private String				threeGramFileName;
+	private String				fourGramFileName;
+	private String				fiveGramFileName;
 
 	@Override
 	public void importNGramList() {

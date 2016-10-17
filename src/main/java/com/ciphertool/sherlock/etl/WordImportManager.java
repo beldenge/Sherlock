@@ -31,12 +31,12 @@ import com.ciphertool.sherlock.etl.importers.WordListImporter;
 import com.ciphertool.sherlock.etl.importers.WordListImporterImpl;
 
 public class WordImportManager {
-	private static Logger log = LoggerFactory.getLogger(WordListImporterImpl.class);
+	private static Logger					log	= LoggerFactory.getLogger(WordListImporterImpl.class);
 
-	private static BeanFactory beanFactory;
-	private static FrequencyListImporter frequencyListImporter;
-	private static WordListImporter wordListImporter;
-	private static NGramListImporter nGramListImporter;
+	private static BeanFactory				beanFactory;
+	private static FrequencyListImporter	frequencyListImporter;
+	private static WordListImporter			wordListImporter;
+	private static NGramListImporter		nGramListImporter;
 
 	/**
 	 * Bootstraps the Spring application context.

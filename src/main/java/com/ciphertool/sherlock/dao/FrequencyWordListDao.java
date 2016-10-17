@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
 import com.ciphertool.sherlock.entities.Word;
 
 public class FrequencyWordListDao implements WordListDao {
-	private static Logger log = LoggerFactory.getLogger(FrequencyWordListDao.class);
+	private static Logger	log			= LoggerFactory.getLogger(FrequencyWordListDao.class);
 
-	private List<Word> wordList = new ArrayList<Word>();
+	private List<Word>		wordList	= new ArrayList<Word>();
 
 	/**
 	 * Constructor requiring a WordDao and top number of Words. Stacks the List based on Word frequency.

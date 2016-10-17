@@ -20,9 +20,9 @@
 package com.ciphertool.sherlock.wordgraph;
 
 public class Match {
-	private int beginPos;
-	private int endPos;
-	private String word;
+	private int		beginPos;
+	private int		endPos;
+	private String	word;
 
 	public Match(int beginPos, int endPos, String word) {
 		this.beginPos = beginPos;

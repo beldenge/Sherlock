@@ -33,14 +33,14 @@ import org.slf4j.LoggerFactory;
 import com.ciphertool.sherlock.entities.NGram;
 
 public class UniqueNGramListDao implements NGramListDao {
-	private static Logger log = LoggerFactory.getLogger(UniqueNGramListDao.class);
+	private static Logger				log				= LoggerFactory.getLogger(UniqueNGramListDao.class);
 
-	private List<NGram> twoGramList = new ArrayList<NGram>();
-	private List<NGram> threeGramList = new ArrayList<NGram>();
-	private List<NGram> fourGramList = new ArrayList<NGram>();
-	private List<NGram> fiveGramList = new ArrayList<NGram>();
+	private List<NGram>					twoGramList		= new ArrayList<NGram>();
+	private List<NGram>					threeGramList	= new ArrayList<NGram>();
+	private List<NGram>					fourGramList	= new ArrayList<NGram>();
+	private List<NGram>					fiveGramList	= new ArrayList<NGram>();
 
-	private Map<Integer, List<NGram>> mapOfNGramLists = new HashMap<Integer, List<NGram>>();
+	private Map<Integer, List<NGram>>	mapOfNGramLists	= new HashMap<Integer, List<NGram>>();
 
 	{
 		mapOfNGramLists.put(new Integer(2), twoGramList);

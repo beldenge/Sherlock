@@ -27,17 +27,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
 
 @Document(collection = "partsOfSpeech")
-@CompoundIndex(def = "{ 'partOfSpeech': 1, 'word': 1 }", unique =  true, background = true)
+@CompoundIndex(def = "{ 'partOfSpeech': 1, 'word': 1 }", unique = true, background = true)
 public class Word {
 	@Id
-	private String id;
+	private String				id;
 
 	@Indexed(background = true)
-	private String word;
+	private String				word;
 
-	private PartOfSpeechType partOfSpeech;
+	private PartOfSpeechType	partOfSpeech;
 
-	private int frequencyWeight;
+	private int					frequencyWeight;
 
 	public Word() {
 	}
@@ -45,8 +45,10 @@ public class Word {
 	/**
 	 * Business-key constructor
 	 * 
-	 * @param word the word String to set
-	 * @param partOfSpeech the PartOfSpeechType to set
+	 * @param word
+	 *            the word String to set
+	 * @param partOfSpeech
+	 *            the PartOfSpeechType to set
 	 */
 	public Word(String word, PartOfSpeechType partOfSpeech) {
 		this(word, partOfSpeech, 1);
@@ -55,8 +57,10 @@ public class Word {
 	/**
 	 * Full-args constructor
 	 * 
-	 * @param word the word String to set
-	 * @param partOfSpeech the PartOfSpeechType to set
+	 * @param word
+	 *            the word String to set
+	 * @param partOfSpeech
+	 *            the PartOfSpeechType to set
 	 * @param frequencyWeight
 	 *            the frequency weight to set
 	 */
@@ -95,7 +99,8 @@ public class Word {
 	}
 
 	/**
-	 * @param id the id to set
+	 * @param id
+	 *            the id to set
 	 */
 	public void setId(String id) {
 		this.id = id;
@@ -130,7 +135,7 @@ public class Word {
 	public void setPartOfSpeech(PartOfSpeechType partOfSpeech) {
 		this.partOfSpeech = partOfSpeech;
 	}
-	
+
 	/**
 	 * @return the frequency weight
 	 */

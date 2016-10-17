@@ -34,10 +34,10 @@ import com.ciphertool.sherlock.entities.Word;
 import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
 
 public class BasicWordMapDao implements WordMapDao {
-	private static Logger log = LoggerFactory.getLogger(BasicWordMapDao.class);
+	private static Logger							log					= LoggerFactory.getLogger(BasicWordMapDao.class);
 
-	private Map<PartOfSpeechType, ArrayList<Word>> partOfSpeechWordMap = new HashMap<PartOfSpeechType, ArrayList<Word>>();
-	private Map<Integer, ArrayList<Word>> lengthWordMap = new HashMap<Integer, ArrayList<Word>>();
+	private Map<PartOfSpeechType, ArrayList<Word>>	partOfSpeechWordMap	= new HashMap<PartOfSpeechType, ArrayList<Word>>();
+	private Map<Integer, ArrayList<Word>>			lengthWordMap		= new HashMap<Integer, ArrayList<Word>>();
 
 	/**
 	 * Constructor with autowired dependencies.

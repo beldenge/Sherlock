@@ -25,17 +25,17 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "nGram")
-@CompoundIndex(def = "{ 'nGram': 1, 'numWords': 1 }", unique =  true, background = true)
+@CompoundIndex(def = "{ 'nGram': 1, 'numWords': 1 }", unique = true, background = true)
 public class NGram {
 	@Id
-	private String id;
+	private String	id;
 
-	private String nGram;
+	private String	nGram;
 
-	private int numWords;
+	private int		numWords;
 
 	@Indexed(background = true)
-	private long frequencyWeight;
+	private long	frequencyWeight;
 
 	public NGram() {
 	}
@@ -73,7 +73,8 @@ public class NGram {
 	}
 
 	/**
-	 * @param id the id to set
+	 * @param id
+	 *            the id to set
 	 */
 	public void setId(String id) {
 		this.id = id;
