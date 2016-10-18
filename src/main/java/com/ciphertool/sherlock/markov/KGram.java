@@ -51,6 +51,6 @@ public class KGram {
 
 	@Override
 	public String toString() {
-		return "KGram: " + Arrays.toString(kGram);
+		return Arrays.toString(kGram);
 	}
 }
