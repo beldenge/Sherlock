@@ -80,5 +80,4 @@
 		<property name="keepAliveSeconds" value="5" />
 		<property name="allowCoreThreadTimeOut" value="true" />
 	</bean>
-
 </beans>

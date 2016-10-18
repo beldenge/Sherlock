@@ -19,6 +19,7 @@
 
 package com.ciphertool.sherlock.markov;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,6 +62,20 @@ public class MarkovModel {
 		}
 
 		transition.increment();
+	}
+
+	public void normalize() {
+		for (KGram key : model.keySet()) {
+			Long total = 0L;
+
+			for (Transition transition : model.get(key)) {
+				total += transition.getCount();
+			}
+
+			for (Transition transition : model.get(key)) {
+				transition.setFrequencyRatio(new BigDecimal(transition.getCount()).divide(new BigDecimal(total)));
+			}
+		}
 	}
 
 	@Override

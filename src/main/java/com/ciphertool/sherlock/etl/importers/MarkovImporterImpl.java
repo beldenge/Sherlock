@@ -48,6 +48,7 @@ public class MarkovImporterImpl implements MarkovImporter {
 
 		MarkovModel model = new MarkovModel(order);
 		parseFiles(Paths.get(corpusDirectory), model);
+		model.normalize();
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 
