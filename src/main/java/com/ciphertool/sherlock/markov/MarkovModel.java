@@ -20,6 +20,7 @@
 package com.ciphertool.sherlock.markov;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +32,8 @@ import com.ciphertool.sherlock.etl.importers.MarkovImporterImpl;
 
 public class MarkovModel {
 	private static Logger						log		= LoggerFactory.getLogger(MarkovImporterImpl.class);
+
+	private static final int					SCALE	= 4;
 
 	private Map<KGram, ArrayList<Transition>>	model	= new HashMap<KGram, ArrayList<Transition>>();
 	private int									order;
@@ -73,7 +76,7 @@ public class MarkovModel {
 			}
 
 			for (Transition transition : model.get(key)) {
-				transition.setFrequencyRatio(new BigDecimal(transition.getCount()).divide(new BigDecimal(total)));
+				transition.setFrequencyRatio(BigDecimal.valueOf(transition.getCount()).divide(BigDecimal.valueOf(total), SCALE, RoundingMode.HALF_UP));
 			}
 		}
 	}
@@ -86,7 +89,8 @@ public class MarkovModel {
 			sb.append(key.toString());
 
 			for (Transition transition : model.get(key)) {
-				sb.append("\n\t -> " + transition.getSymbol() + ": " + transition.getCount());
+				sb.append("\n\t -> " + transition.getSymbol() + " | " + transition.getCount() + " | "
+						+ transition.getFrequencyRatio());
 			}
 
 			sb.append("\n");
