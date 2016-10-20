@@ -1,12 +1,12 @@
 package com.ciphertool.sherlock.markov;
 
-import java.util.ArrayList;
+import java.util.Map;
 import java.util.Random;
 
 import com.ciphertool.sherlock.etl.importers.MarkovImporterImpl;
 
 public class MarkovModelTest {
-	private static final int			ORDER	= 10;
+	private static final int			ORDER	= 6;
 
 	private static MarkovImporterImpl	importer;
 	private static MarkovModel			model;
@@ -23,21 +23,11 @@ public class MarkovModelTest {
 	// @Test
 	public void generate() {
 		StringBuffer sb = new StringBuffer();
-		String begin = "happyhallo";
-		sb.append(begin);
-
-		Character[] kGramArray = new Character[ORDER];
-		char[] kGram = new char[ORDER];
-		begin.getChars(0, ORDER, kGram, 0);
-
-		for (int i = 0; i < kGram.length; i++) {
-			kGramArray[i] = kGram[i];
-		}
-
-		KGram root = new KGram(kGramArray);
+		String root = "happyh";
+		sb.append(root);
 
 		for (int i = 0; i < 100; i++) {
-			ArrayList<Transition> transitions = model.getModel().get(root);
+			Map<Character, KGramIndexNode> transitions = model.getTransitions(root);
 
 			if (transitions == null || transitions.isEmpty()) {
 				System.out.println("Could not find transition for root: " + root);
@@ -47,17 +37,11 @@ public class MarkovModelTest {
 
 			Random rand = new Random();
 			int randomIndex = rand.nextInt(transitions.size());
-			Character nextSymbol = transitions.get(randomIndex).getSymbol();
 
-			Character[] nextRoot = new Character[ORDER];
-			Character[] currentRoot = root.getkGram();
-			for (int j = 0; j < currentRoot.length - 1; j++) {
-				nextRoot[j] = currentRoot[j + 1];
-			}
-
+			Character nextSymbol = (Character) transitions.keySet().toArray()[randomIndex];
 			sb.append(nextSymbol);
-			nextRoot[ORDER - 1] = nextSymbol;
-			root = new KGram(nextRoot);
+
+			root = root.substring(1) + nextSymbol;
 		}
 
 		System.out.println(sb.toString());

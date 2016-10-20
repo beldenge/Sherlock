@@ -48,7 +48,6 @@ public class MarkovImporterImpl implements MarkovImporter {
 
 		MarkovModel model = new MarkovModel(order);
 		parseFiles(Paths.get(corpusDirectory), model);
-		model.normalize();
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 
@@ -88,19 +87,10 @@ public class MarkovImporterImpl implements MarkovImporter {
 			content = content.replaceAll(NON_ALPHA, "").toLowerCase();
 
 			for (int i = 0; i < content.length() - order; i++) {
-				char[] kGram = new char[order];
-
-				content.getChars(i, i + order, kGram, 0);
-
-				Character[] kGramArray = new Character[order];
-
-				for (int j = 0; j < kGram.length; j++) {
-					kGramArray[j] = kGram[j];
-				}
-
+				String kGramString = content.substring(i, i + order);
 				Character symbol = content.charAt(i + order);
 
-				model.addTransition(kGramArray, symbol);
+				model.addTransition(kGramString, symbol);
 			}
 		} catch (IOException ioe) {
 			log.error("Unable to parse file: " + path.toString(), ioe);

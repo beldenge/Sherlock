@@ -19,10 +19,6 @@
 
 package com.ciphertool.sherlock.markov;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -31,53 +27,36 @@ import org.slf4j.LoggerFactory;
 import com.ciphertool.sherlock.etl.importers.MarkovImporterImpl;
 
 public class MarkovModel {
-	private static Logger						log		= LoggerFactory.getLogger(MarkovImporterImpl.class);
+	private static Logger	log			= LoggerFactory.getLogger(MarkovImporterImpl.class);
 
-	private static final int					SCALE	= 4;
-
-	private Map<KGram, ArrayList<Transition>>	model	= new HashMap<KGram, ArrayList<Transition>>();
-	private int									order;
+	private KGramIndexNode	rootNode	= new KGramIndexNode();
+	private int				order;
 
 	public MarkovModel(int order) {
 		this.order = order;
 	}
 
-	public void addTransition(Character[] characters, Character symbol) {
-		if (characters.length != order) {
-			log.error("Expected k-gram of order " + order + ", but a k-gram of order " + characters.length
+	public void addTransition(String characters, Character symbol) {
+		if (characters.length() != order) {
+			log.error("Expected k-gram of order " + order + ", but a k-gram of order " + characters.length()
+
 					+ " was found.  Unable to add transition.");
 		}
 
-		KGram kGram = new KGram(characters);
-
-		if (!model.containsKey(kGram)) {
-			model.put(kGram, new ArrayList<Transition>());
-		}
-
-		ArrayList<Transition> transitions = model.get(kGram);
-
-		Transition transition = new Transition(symbol);
-
-		if (!transitions.contains(transition)) {
-			transitions.add(transition);
-		} else {
-			transition = transitions.get(transitions.indexOf(transition));
-		}
-
-		transition.increment();
+		populateMap(rootNode, characters + symbol);
 	}
 
-	public void normalize() {
-		for (KGram key : model.keySet()) {
-			Long total = 0L;
+	public static void populateMap(KGramIndexNode currentNode, String wordPart) {
+		Character firstLetter = wordPart.charAt(0);
 
-			for (Transition transition : model.get(key)) {
-				total += transition.getCount();
-			}
+		if (!currentNode.containsChild(firstLetter)) {
+			currentNode.putChild(firstLetter, new KGramIndexNode());
+		}
 
-			for (Transition transition : model.get(key)) {
-				transition.setFrequencyRatio(BigDecimal.valueOf(transition.getCount()).divide(BigDecimal.valueOf(total), SCALE, RoundingMode.HALF_UP));
-			}
+		currentNode.getChild(firstLetter).increment();
+
+		if (wordPart.length() > 1) {
+			populateMap(currentNode.getChild(firstLetter), wordPart.substring(1));
 		}
 	}
 
@@ -85,25 +64,59 @@ public class MarkovModel {
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 
-		for (KGram key : model.keySet()) {
-			sb.append(key.toString());
-
-			for (Transition transition : model.get(key)) {
-				sb.append("\n\t -> " + transition.getSymbol() + " | " + transition.getCount() + " | "
-						+ transition.getFrequencyRatio());
-			}
-
-			sb.append("\n");
+		for (Character key : rootNode.getTransitionMap().keySet()) {
+			appendTransitions("", key, rootNode.getTransitionMap().get(key), sb);
 		}
 
 		return sb.toString();
 	}
 
+	public void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuffer sb) {
+		if (node.getCount() != null || node.getFrequencyRatio() != null) {
+			sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount() + " | " + node.getFrequencyRatio());
+		}
+
+		if (node.getTransitionMap() == null || node.getTransitionMap().isEmpty()) {
+			return;
+		}
+
+		for (Character key : node.getTransitionMap().keySet()) {
+			appendTransitions(parent + key.toString(), key, rootNode.getTransitionMap().get(key), sb);
+		}
+	}
+
 	/**
-	 * @return the model
+	 * @param kGram
+	 *            the K-gram String to search by
+	 * @return the Map of transitions
 	 */
-	public Map<KGram, ArrayList<Transition>> getModel() {
-		return model;
+	public Map<Character, KGramIndexNode> getTransitions(String kGram) {
+		KGramIndexNode kGramNode = findMatch(rootNode, kGram);
+
+		return kGramNode == null ? null : kGramNode.getTransitionMap();
+	}
+
+	public static KGramIndexNode findMatch(KGramIndexNode node, String kGramString) {
+		Character currentChar = kGramString.charAt(0);
+
+		KGramIndexNode nextNode = node.getChild(currentChar);
+
+		if (nextNode == null) {
+			return null;
+		}
+
+		if (kGramString.length() == 1) {
+			return nextNode;
+		}
+
+		return findMatch(nextNode, kGramString.substring(1));
+	}
+
+	/**
+	 * @return the rootNode
+	 */
+	public KGramIndexNode getRootNode() {
+		return rootNode;
 	}
 
 	/**
