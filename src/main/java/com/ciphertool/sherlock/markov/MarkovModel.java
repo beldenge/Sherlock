@@ -36,18 +36,18 @@ public class MarkovModel {
 		this.order = order;
 	}
 
-	public void addTransition(String characters, Character symbol) {
-		if (characters.length() != order) {
-			log.error("Expected k-gram of order " + order + ", but a k-gram of order " + characters.length()
+	public void addTransition(String kGramString, Character symbol) {
+		if (kGramString.length() != order) {
+			log.error("Expected k-gram of order " + order + ", but a k-gram of order " + kGramString.length()
 
 					+ " was found.  Unable to add transition.");
 		}
 
-		populateMap(rootNode, characters + symbol);
+		populateMap(rootNode, kGramString + symbol);
 	}
 
-	public static void populateMap(KGramIndexNode currentNode, String wordPart) {
-		Character firstLetter = wordPart.charAt(0);
+	public static void populateMap(KGramIndexNode currentNode, String kGramString) {
+		Character firstLetter = kGramString.charAt(0);
 
 		if (!currentNode.containsChild(firstLetter)) {
 			currentNode.putChild(firstLetter, new KGramIndexNode());
@@ -55,8 +55,8 @@ public class MarkovModel {
 
 		currentNode.getChild(firstLetter).increment();
 
-		if (wordPart.length() > 1) {
-			populateMap(currentNode.getChild(firstLetter), wordPart.substring(1));
+		if (kGramString.length() > 1) {
+			populateMap(currentNode.getChild(firstLetter), kGramString.substring(1));
 		}
 	}
 
@@ -72,9 +72,7 @@ public class MarkovModel {
 	}
 
 	public void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuffer sb) {
-		if (node.getCount() != null || node.getFrequencyRatio() != null) {
-			sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount() + " | " + node.getFrequencyRatio());
-		}
+		sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount());
 
 		if (node.getTransitionMap() == null || node.getTransitionMap().isEmpty()) {
 			return;
@@ -97,9 +95,7 @@ public class MarkovModel {
 	}
 
 	public static KGramIndexNode findMatch(KGramIndexNode node, String kGramString) {
-		Character currentChar = kGramString.charAt(0);
-
-		KGramIndexNode nextNode = node.getChild(currentChar);
+		KGramIndexNode nextNode = node.getChild(kGramString.charAt(0));
 
 		if (nextNode == null) {
 			return null;

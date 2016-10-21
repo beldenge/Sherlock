@@ -1,12 +1,10 @@
 package com.ciphertool.sherlock.markov;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
 public class KGramIndexNode {
-	private Long							frequencyCount;
-	private BigDecimal						frequencyRatio;
+	private long							frequencyCount	= 0L;
 	private Map<Character, KGramIndexNode>	transitionMap	= new HashMap<Character, KGramIndexNode>();
 
 	/**
@@ -28,7 +26,7 @@ public class KGramIndexNode {
 	}
 
 	public void increment() {
-		this.frequencyCount = (this.frequencyCount == null) ? 1L : this.frequencyCount + 1L;
+		this.frequencyCount += 1L;
 	}
 
 	/**
@@ -39,24 +37,9 @@ public class KGramIndexNode {
 	}
 
 	/**
-	 * @return the frequencyRatio
-	 */
-	public BigDecimal getFrequencyRatio() {
-		return frequencyRatio;
-	}
-
-	/**
 	 * @return the transitionMap
 	 */
 	public Map<Character, KGramIndexNode> getTransitionMap() {
 		return transitionMap;
-	}
-
-	/**
-	 * @param frequencyRatio
-	 *            the frequencyRatio to set
-	 */
-	public void setFrequencyRatio(BigDecimal frequencyRatio) {
-		this.frequencyRatio = frequencyRatio;
 	}
 }
