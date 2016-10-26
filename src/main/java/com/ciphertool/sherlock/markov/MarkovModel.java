@@ -39,7 +39,6 @@ public class MarkovModel {
 	public void addTransition(String kGramString, Character symbol) {
 		if (kGramString.length() != order) {
 			log.error("Expected k-gram of order " + order + ", but a k-gram of order " + kGramString.length()
-
 					+ " was found.  Unable to add transition.");
 		}
 
