@@ -46,7 +46,13 @@ public class MarkovModelTest {
 		sb.append(root);
 
 		for (int i = 0; i < 100; i++) {
-			Map<Character, KGramIndexNode> transitions = model.getTransitions(root);
+			KGramIndexNode match = model.find(root);
+
+			Map<Character, KGramIndexNode> transitions = null;
+
+			if (match != null) {
+				transitions = match.getTransitionMap();
+			}
 
 			if (transitions == null || transitions.isEmpty()) {
 				System.out.println("Could not find transition for root: " + root);

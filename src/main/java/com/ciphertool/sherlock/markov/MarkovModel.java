@@ -19,8 +19,6 @@
 
 package com.ciphertool.sherlock.markov;
 
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,10 +85,8 @@ public class MarkovModel {
 	 *            the K-gram String to search by
 	 * @return the Map of transitions
 	 */
-	public Map<Character, KGramIndexNode> getTransitions(String kGram) {
-		KGramIndexNode kGramNode = findMatch(rootNode, kGram);
-
-		return kGramNode == null ? null : kGramNode.getTransitionMap();
+	public KGramIndexNode find(String kGram) {
+		return findMatch(rootNode, kGram);
 	}
 
 	public static KGramIndexNode findMatch(KGramIndexNode node, String kGramString) {
