@@ -19,16 +19,25 @@
 
 package com.ciphertool.sherlock.markov;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ciphertool.sherlock.etl.importers.MarkovImporterImpl;
 
 public class MarkovModel {
-	private static Logger	log			= LoggerFactory.getLogger(MarkovImporterImpl.class);
+	private static Logger					log					= LoggerFactory.getLogger(MarkovImporterImpl.class);
 
-	private KGramIndexNode	rootNode	= new KGramIndexNode(0);
-	private int				order;
+	private static final List<Character>	LOWERCASE_LETTERS	= Arrays.asList(new Character[] { 'a', 'b', 'c', 'd',
+			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
+			'z' });
+
+	private KGramIndexNode					rootNode			= new KGramIndexNode(0);
+	private int								order;
+	private boolean							postProcessed		= false;
 
 	public MarkovModel(int order) {
 		this.order = order;
@@ -57,26 +66,51 @@ public class MarkovModel {
 		}
 	}
 
-	@Override
-	public String toString() {
-		StringBuffer sb = new StringBuffer();
-
-		for (Character key : rootNode.getTransitionMap().keySet()) {
-			appendTransitions("", key, rootNode.getTransitionMap().get(key), sb);
-		}
-
-		return sb.toString();
-	}
-
-	protected void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuffer sb) {
-		sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount());
-
-		if (node.getTransitionMap() == null || node.getTransitionMap().isEmpty()) {
+	public void postProcess() {
+		if (postProcessed) {
 			return;
 		}
 
-		for (Character key : node.getTransitionMap().keySet()) {
-			appendTransitions(parent + key.toString(), key, rootNode.getTransitionMap().get(key), sb);
+		long start = System.currentTimeMillis();
+
+		log.info("Starting corpus post-processing...");
+
+		Map<Character, KGramIndexNode> transitions = this.getRootNode().getTransitionMap();
+
+		for (Character c : transitions.keySet()) {
+			KGramIndexNode node = transitions.get(c);
+
+			if (node != null) {
+				linkChild(node, c.toString());
+			}
+		}
+
+		postProcessed = true;
+
+		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
+	}
+
+	protected void linkChild(KGramIndexNode node, String kGram) {
+		Map<Character, KGramIndexNode> transitions = node.getTransitionMap();
+
+		if (kGram.length() > order) {
+			for (Character letter : LOWERCASE_LETTERS) {
+				KGramIndexNode match = this.find(kGram.substring(1) + letter.toString());
+
+				if (match != null) {
+					node.putChild(letter, match);
+				}
+			}
+
+			return;
+		}
+
+		for (Character c : transitions.keySet()) {
+			KGramIndexNode nextNode = transitions.get(c);
+
+			if (nextNode != null) {
+				linkChild(nextNode, kGram + c.toString());
+			}
 		}
 	}
 
@@ -138,5 +172,28 @@ public class MarkovModel {
 	 */
 	public int getOrder() {
 		return order;
+	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+
+		for (Character key : rootNode.getTransitionMap().keySet()) {
+			appendTransitions("", key, rootNode.getTransitionMap().get(key), sb);
+		}
+
+		return sb.toString();
+	}
+
+	protected void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuffer sb) {
+		sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount());
+
+		if (node.getTransitionMap() == null || node.getTransitionMap().isEmpty()) {
+			return;
+		}
+
+		for (Character key : node.getTransitionMap().keySet()) {
+			appendTransitions(parent + key.toString(), key, rootNode.getTransitionMap().get(key), sb);
+		}
 	}
 }

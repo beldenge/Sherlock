@@ -24,30 +24,21 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
-import com.ciphertool.sherlock.markov.KGramIndexNode;
 import com.ciphertool.sherlock.markov.MarkovModel;
 
 public class MarkovImporterImpl implements MarkovImporter {
-	private static Logger					log					= LoggerFactory.getLogger(MarkovImporterImpl.class);
+	private static Logger		log			= LoggerFactory.getLogger(MarkovImporterImpl.class);
 
-	private static final String				EXTENSION			= ".txt";
-	private static final String				NON_ALPHA			= "[^a-zA-Z]";
-	private static final List<Character>	LOWERCASE_LETTERS	= Arrays.asList(new Character[] { 'a', 'b', 'c', 'd',
-			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
-			'z' });
+	private static final String	EXTENSION	= ".txt";
+	private static final String	NON_ALPHA	= "[^a-zA-Z]";
 
-	private String							corpusDirectory;
-	private Integer							order;
-
-	private boolean							postProcessed		= false;
+	private String				corpusDirectory;
+	private Integer				order;
 
 	@Override
 	public MarkovModel importCorpus() {
@@ -103,54 +94,6 @@ public class MarkovImporterImpl implements MarkovImporter {
 			}
 		} catch (IOException ioe) {
 			log.error("Unable to parse file: " + path.toString(), ioe);
-		}
-	}
-
-	public void postProcess(MarkovModel model) {
-		if (postProcessed) {
-			return;
-		}
-
-		long start = System.currentTimeMillis();
-
-		log.info("Starting corpus post-processing...");
-
-		Map<Character, KGramIndexNode> transitions = model.getRootNode().getTransitionMap();
-
-		for (Character c : transitions.keySet()) {
-			KGramIndexNode node = transitions.get(c);
-
-			if (node != null) {
-				linkChild(model, node, c.toString());
-			}
-		}
-
-		postProcessed = true;
-
-		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
-	}
-
-	protected void linkChild(MarkovModel model, KGramIndexNode node, String kGram) {
-		Map<Character, KGramIndexNode> transitions = node.getTransitionMap();
-
-		if (kGram.length() > order) {
-			for (Character letter : LOWERCASE_LETTERS) {
-				KGramIndexNode match = model.find(kGram.substring(1) + letter.toString());
-
-				if (match != null) {
-					node.putChild(letter, match);
-				}
-			}
-
-			return;
-		}
-
-		for (Character c : transitions.keySet()) {
-			KGramIndexNode nextNode = transitions.get(c);
-
-			if (nextNode != null) {
-				linkChild(model, nextNode, kGram + c.toString());
-			}
 		}
 	}
 
