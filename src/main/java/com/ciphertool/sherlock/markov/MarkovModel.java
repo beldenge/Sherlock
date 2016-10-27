@@ -26,10 +26,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ciphertool.sherlock.etl.importers.MarkovImporterImpl;
-
 public class MarkovModel {
-	private static Logger					log					= LoggerFactory.getLogger(MarkovImporterImpl.class);
+	private static Logger					log					= LoggerFactory.getLogger(MarkovModel.class);
 
 	private static final List<Character>	LOWERCASE_LETTERS	= Arrays.asList(new Character[] { 'a', 'b', 'c', 'd',
 			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
