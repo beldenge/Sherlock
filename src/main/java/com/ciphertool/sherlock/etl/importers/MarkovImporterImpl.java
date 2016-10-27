@@ -51,6 +51,8 @@ public class MarkovImporterImpl implements MarkovImporter {
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 
+		model.postProcess();
+
 		return model;
 	}
 
