@@ -47,6 +47,8 @@ public class MarkovImporterImpl implements MarkovImporter {
 	private String							corpusDirectory;
 	private Integer							order;
 
+	private boolean							postProcessed		= false;
+
 	@Override
 	public MarkovModel importCorpus() {
 		long start = System.currentTimeMillis();
@@ -57,14 +59,6 @@ public class MarkovImporterImpl implements MarkovImporter {
 		parseFiles(Paths.get(corpusDirectory), model);
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
-
-		start = System.currentTimeMillis();
-
-		// log.info("Starting corpus post-processing...");
-
-		// postProcess(model);
-
-		// log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 
 		return model;
 	}
@@ -112,7 +106,15 @@ public class MarkovImporterImpl implements MarkovImporter {
 		}
 	}
 
-	protected void postProcess(MarkovModel model) {
+	public void postProcess(MarkovModel model) {
+		if (postProcessed) {
+			return;
+		}
+
+		long start = System.currentTimeMillis();
+
+		log.info("Starting corpus post-processing...");
+
 		Map<Character, KGramIndexNode> transitions = model.getRootNode().getTransitionMap();
 
 		for (Character c : transitions.keySet()) {
@@ -122,6 +124,10 @@ public class MarkovImporterImpl implements MarkovImporter {
 				linkChild(model, node, c.toString());
 			}
 		}
+
+		postProcessed = true;
+
+		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 	}
 
 	protected void linkChild(MarkovModel model, KGramIndexNode node, String kGram) {
