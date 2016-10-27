@@ -60,11 +60,11 @@ public class MarkovImporterImpl implements MarkovImporter {
 
 		start = System.currentTimeMillis();
 
-		log.info("Starting corpus post-processing...");
+		// log.info("Starting corpus post-processing...");
 
-		postProcess(model);
+		// postProcess(model);
 
-		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
+		// log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 
 		return model;
 	}

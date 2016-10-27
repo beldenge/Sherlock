@@ -27,7 +27,7 @@ import com.ciphertool.sherlock.etl.importers.MarkovImporterImpl;
 public class MarkovModel {
 	private static Logger	log			= LoggerFactory.getLogger(MarkovImporterImpl.class);
 
-	private KGramIndexNode	rootNode	= new KGramIndexNode();
+	private KGramIndexNode	rootNode	= new KGramIndexNode(0);
 	private int				order;
 
 	public MarkovModel(int order) {
@@ -43,11 +43,11 @@ public class MarkovModel {
 		populateMap(rootNode, kGramString + symbol);
 	}
 
-	public static void populateMap(KGramIndexNode currentNode, String kGramString) {
+	protected void populateMap(KGramIndexNode currentNode, String kGramString) {
 		Character firstLetter = kGramString.charAt(0);
 
 		if (!currentNode.containsChild(firstLetter)) {
-			currentNode.putChild(firstLetter, new KGramIndexNode());
+			currentNode.putChild(firstLetter, new KGramIndexNode(order - (kGramString.length() - 2)));
 		}
 
 		currentNode.getChild(firstLetter).increment();
@@ -68,7 +68,7 @@ public class MarkovModel {
 		return sb.toString();
 	}
 
-	public void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuffer sb) {
+	protected void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuffer sb) {
 		sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount());
 
 		if (node.getTransitionMap() == null || node.getTransitionMap().isEmpty()) {
@@ -83,13 +83,13 @@ public class MarkovModel {
 	/**
 	 * @param kGram
 	 *            the K-gram String to search by
-	 * @return the Map of transitions
+	 * @return the matching KGramIndexNode
 	 */
 	public KGramIndexNode find(String kGram) {
 		return findMatch(rootNode, kGram);
 	}
 
-	public static KGramIndexNode findMatch(KGramIndexNode node, String kGramString) {
+	protected static KGramIndexNode findMatch(KGramIndexNode node, String kGramString) {
 		KGramIndexNode nextNode = node.getChild(kGramString.charAt(0));
 
 		if (nextNode == null) {
@@ -101,6 +101,29 @@ public class MarkovModel {
 		}
 
 		return findMatch(nextNode, kGramString.substring(1));
+	}
+
+	/**
+	 * @param kGram
+	 *            the K-gram String to search by
+	 * @return the longest matching KGramIndexNode
+	 */
+	public KGramIndexNode findLongest(String kGram) {
+		return findLongestMatch(rootNode, kGram);
+	}
+
+	protected static KGramIndexNode findLongestMatch(KGramIndexNode node, String kGramString) {
+		KGramIndexNode nextNode = node.getChild(kGramString.charAt(0));
+
+		if (nextNode == null) {
+			return node;
+		}
+
+		if (kGramString.length() == 1) {
+			return nextNode;
+		}
+
+		return findLongestMatch(nextNode, kGramString.substring(1));
 	}
 
 	/**

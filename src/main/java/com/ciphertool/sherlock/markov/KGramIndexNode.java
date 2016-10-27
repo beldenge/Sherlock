@@ -4,13 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class KGramIndexNode {
+	private int								level			= 0;
 	private long							frequencyCount	= 0L;
 	private Map<Character, KGramIndexNode>	transitionMap	= new HashMap<Character, KGramIndexNode>();
 
 	/**
-	 * Default no-args constructor
+	 * @param level
+	 *            the level to set
 	 */
-	public KGramIndexNode() {
+	public KGramIndexNode(int level) {
+		this.level = level;
 	}
 
 	public boolean containsChild(Character c) {
@@ -34,6 +37,13 @@ public class KGramIndexNode {
 	 */
 	public Long getCount() {
 		return frequencyCount;
+	}
+
+	/**
+	 * @return the level
+	 */
+	public int getLevel() {
+		return level;
 	}
 
 	/**
