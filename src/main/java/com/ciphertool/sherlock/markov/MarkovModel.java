@@ -75,6 +75,8 @@ public class MarkovModel {
 
 		Map<Character, KGramIndexNode> transitions = this.getRootNode().getTransitionMap();
 
+		normalize(this.getRootNode());
+
 		for (Character c : transitions.keySet()) {
 			KGramIndexNode node = transitions.get(c);
 
@@ -86,6 +88,29 @@ public class MarkovModel {
 		postProcessed = true;
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
+	}
+
+	protected void normalize(KGramIndexNode node) {
+		Map<Character, KGramIndexNode> transitions = node.getTransitionMap();
+
+		if (transitions == null || transitions.isEmpty()) {
+			return;
+		}
+
+		Long total = 0L;
+		for (Character c : transitions.keySet()) {
+			KGramIndexNode child = transitions.get(c);
+
+			total += child.getCount();
+		}
+
+		for (Character c : transitions.keySet()) {
+			KGramIndexNode child = transitions.get(c);
+
+			child.setRatio(Double.parseDouble(child.getCount().toString()) / Double.parseDouble(total.toString()));
+
+			normalize(child);
+		}
 	}
 
 	protected void linkChild(KGramIndexNode node, String kGram) {

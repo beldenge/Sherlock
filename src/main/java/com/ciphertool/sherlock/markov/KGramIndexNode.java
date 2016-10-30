@@ -6,6 +6,7 @@ import java.util.Map;
 public class KGramIndexNode {
 	private int								level			= 0;
 	private long							frequencyCount	= 0L;
+	private double							ratio			= 0.0;
 	private Map<Character, KGramIndexNode>	transitionMap	= new HashMap<Character, KGramIndexNode>();
 
 	/**
@@ -44,6 +45,21 @@ public class KGramIndexNode {
 	 */
 	public int getLevel() {
 		return level;
+	}
+
+	/**
+	 * @return the ratio
+	 */
+	public double getRatio() {
+		return ratio;
+	}
+
+	/**
+	 * @param ratio
+	 *            the ratio to set
+	 */
+	public void setRatio(double ratio) {
+		this.ratio = ratio;
 	}
 
 	/**
