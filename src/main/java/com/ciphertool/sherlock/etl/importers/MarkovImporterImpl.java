@@ -39,6 +39,7 @@ public class MarkovImporterImpl implements MarkovImporter {
 
 	private String				corpusDirectory;
 	private Integer				order;
+	private Integer				minCount;
 
 	@Override
 	public MarkovModel importCorpus() {
@@ -51,7 +52,7 @@ public class MarkovImporterImpl implements MarkovImporter {
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 
-		model.postProcess();
+		model.postProcess(minCount);
 
 		return model;
 	}
@@ -115,5 +116,14 @@ public class MarkovImporterImpl implements MarkovImporter {
 	@Required
 	public void setOrder(Integer order) {
 		this.order = order;
+	}
+
+	/**
+	 * @param minCount
+	 *            the minCount to set
+	 */
+	@Required
+	public void setMinCount(Integer minCount) {
+		this.minCount = minCount;
 	}
 }

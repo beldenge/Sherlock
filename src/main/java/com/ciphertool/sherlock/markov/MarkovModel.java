@@ -19,9 +19,11 @@
 
 package com.ciphertool.sherlock.markov;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,18 +66,20 @@ public class MarkovModel {
 		}
 	}
 
-	public void postProcess() {
+	public void postProcess(int minCount) {
 		if (postProcessed) {
 			return;
 		}
 
 		long start = System.currentTimeMillis();
 
-		log.info("Starting corpus post-processing...");
-
-		Map<Character, KGramIndexNode> transitions = this.getRootNode().getTransitionMap();
+		log.info("Starting Markov model post-processing...");
 
 		normalize(this.getRootNode());
+
+		removeOutliers(this.getRootNode(), minCount);
+
+		Map<Character, KGramIndexNode> transitions = this.getRootNode().getTransitionMap();
 
 		for (Character c : transitions.keySet()) {
 			KGramIndexNode node = transitions.get(c);
@@ -88,6 +92,27 @@ public class MarkovModel {
 		postProcessed = true;
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
+	}
+
+	protected void removeOutliers(KGramIndexNode node, int minCount) {
+		Map<Character, KGramIndexNode> transitions = node.getTransitionMap();
+		Set<Character> keys = transitions.keySet();
+
+		List<Character> keysToRemove = new ArrayList<Character>();
+
+		for (Character key : keys) {
+			if (transitions.get(key).getCount() < minCount) {
+				keysToRemove.add(key);
+
+				continue;
+			}
+
+			removeOutliers(transitions.get(key), minCount);
+		}
+
+		for (Character key : keysToRemove) {
+			transitions.remove(key);
+		}
 	}
 
 	protected void normalize(KGramIndexNode node) {
