@@ -22,9 +22,13 @@ package com.ciphertool.sherlock.markov;
 import java.util.Map;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ciphertool.sherlock.etl.importers.MarkovImporterImpl;
 
 public class MarkovModelTest {
+	private Logger						log		= LoggerFactory.getLogger(getClass());
 	private static final int			ORDER	= 6;
 
 	private static MarkovImporterImpl	importer;
@@ -55,7 +59,7 @@ public class MarkovModelTest {
 			}
 
 			if (transitions == null || transitions.isEmpty()) {
-				System.out.println("Could not find transition for root: " + root);
+				log.info("Could not find transition for root: " + root);
 
 				break;
 			}
@@ -69,6 +73,6 @@ public class MarkovModelTest {
 			root = root.substring(1) + nextSymbol;
 		}
 
-		System.out.println(sb.toString());
+		log.info(sb.toString());
 	}
 }
