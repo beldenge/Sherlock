@@ -19,11 +19,8 @@
 
 package com.ciphertool.sherlock.markov;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,13 +76,13 @@ public class MarkovModel {
 
 		removeOutliers(this.getRootNode(), minCount);
 
-		Map<Character, KGramIndexNode> transitions = this.getRootNode().getTransitionMap();
+		KGramIndexNode[] transitions = this.getRootNode().getTransitions();
 
-		for (Character c : transitions.keySet()) {
-			KGramIndexNode node = transitions.get(c);
+		for (int i = 0; i < transitions.length; i++) {
+			KGramIndexNode node = transitions[i];
 
 			if (node != null) {
-				linkChild(node, c.toString());
+				linkChild(node, String.valueOf(node.getLetter()));
 			}
 		}
 
@@ -95,51 +92,52 @@ public class MarkovModel {
 	}
 
 	protected void removeOutliers(KGramIndexNode node, int minCount) {
-		Map<Character, KGramIndexNode> transitions = node.getTransitionMap();
-		Set<Character> keys = transitions.keySet();
+		KGramIndexNode[] transitions = node.getTransitions();
 
-		List<Character> keysToRemove = new ArrayList<Character>();
+		for (int i = 0; i < transitions.length; i++) {
+			if (transitions[i] == null) {
+				continue;
+			}
 
-		for (Character key : keys) {
-			if (transitions.get(key).getCount() < minCount) {
-				keysToRemove.add(key);
+			if (transitions[i].getCount() < minCount) {
+				transitions[i] = null;
 
 				continue;
 			}
 
-			removeOutliers(transitions.get(key), minCount);
-		}
-
-		for (Character key : keysToRemove) {
-			transitions.remove(key);
+			removeOutliers(transitions[i], minCount);
 		}
 	}
 
 	protected void normalize(KGramIndexNode node) {
-		Map<Character, KGramIndexNode> transitions = node.getTransitionMap();
+		KGramIndexNode[] transitions = node.getTransitions();
 
-		if (transitions == null || transitions.isEmpty()) {
+		if (transitions == null || transitions.length == 0) {
 			return;
 		}
 
 		Long total = 0L;
-		for (Character c : transitions.keySet()) {
-			KGramIndexNode child = transitions.get(c);
+		for (int i = 0; i < transitions.length; i++) {
+			KGramIndexNode child = transitions[i];
 
-			total += child.getCount();
+			if (child != null) {
+				total += child.getCount();
+			}
 		}
 
-		for (Character c : transitions.keySet()) {
-			KGramIndexNode child = transitions.get(c);
+		for (int i = 0; i < transitions.length; i++) {
+			KGramIndexNode child = transitions[i];
 
-			child.setRatio(Double.parseDouble(child.getCount().toString()) / Double.parseDouble(total.toString()));
+			if (child != null) {
+				child.setRatio(Double.parseDouble(child.getCount().toString()) / Double.parseDouble(total.toString()));
 
-			normalize(child);
+				normalize(child);
+			}
 		}
 	}
 
 	protected void linkChild(KGramIndexNode node, String kGram) {
-		Map<Character, KGramIndexNode> transitions = node.getTransitionMap();
+		KGramIndexNode[] transitions = node.getTransitions();
 
 		if (kGram.length() > order) {
 			for (Character letter : LOWERCASE_LETTERS) {
@@ -153,11 +151,11 @@ public class MarkovModel {
 			return;
 		}
 
-		for (Character c : transitions.keySet()) {
-			KGramIndexNode nextNode = transitions.get(c);
+		for (int i = 0; i < transitions.length; i++) {
+			KGramIndexNode nextNode = transitions[i];
 
 			if (nextNode != null) {
-				linkChild(nextNode, kGram + c.toString());
+				linkChild(nextNode, kGram + String.valueOf(nextNode.getLetter()));
 			}
 		}
 	}
@@ -226,8 +224,12 @@ public class MarkovModel {
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 
-		for (Character key : rootNode.getTransitionMap().keySet()) {
-			appendTransitions("", key, rootNode.getTransitionMap().get(key), sb);
+		KGramIndexNode[] transitions = rootNode.getTransitions();
+
+		for (int i = 0; i < transitions.length; i++) {
+			if (transitions[i] != null) {
+				appendTransitions("", transitions[i].getLetter(), transitions[i], sb);
+			}
 		}
 
 		return sb.toString();
@@ -236,12 +238,16 @@ public class MarkovModel {
 	protected void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuffer sb) {
 		sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount());
 
-		if (node.getTransitionMap() == null || node.getTransitionMap().isEmpty()) {
+		KGramIndexNode[] transitions = node.getTransitions();
+
+		if (transitions == null || transitions.length == 0) {
 			return;
 		}
 
-		for (Character key : node.getTransitionMap().keySet()) {
-			appendTransitions(parent + key.toString(), key, rootNode.getTransitionMap().get(key), sb);
+		for (int i = 0; i < transitions.length; i++) {
+			if (transitions[i] != null) {
+				appendTransitions(parent + transitions[i].getLetter(), transitions[i].getLetter(), transitions[i], sb);
+			}
 		}
 	}
 }

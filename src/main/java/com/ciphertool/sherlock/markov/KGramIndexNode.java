@@ -1,13 +1,14 @@
 package com.ciphertool.sherlock.markov;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class KGramIndexNode {
-	private int								level			= 0;
-	private long							frequencyCount	= 0L;
-	private double							ratio			= 0.0;
-	private Map<Character, KGramIndexNode>	transitionMap	= new HashMap<Character, KGramIndexNode>();
+	private static final int	MINIMUM_ASCII_VALUE	= 97;
+	private static final int	MAXIMUM_ASCII_VALUE	= 122;
+
+	private int					level				= 0;
+	private long				frequencyCount		= 0L;
+	private double				ratio				= 0.0;
+	private char				letter;
+	private KGramIndexNode[]	transitions			= new KGramIndexNode[26];
 
 	/**
 	 * @param level
@@ -17,16 +18,28 @@ public class KGramIndexNode {
 		this.level = level;
 	}
 
-	public boolean containsChild(Character c) {
-		return this.transitionMap.containsKey(c);
+	public boolean containsChild(char c) {
+		return this.transitions[resolveIndex(c)] != null;
 	}
 
-	public KGramIndexNode getChild(Character c) {
-		return this.transitionMap.get(c);
+	public KGramIndexNode getChild(char c) {
+		return this.transitions[resolveIndex(c)];
 	}
 
-	public void putChild(Character c, KGramIndexNode child) {
-		this.transitionMap.put(c, child);
+	public void putChild(char c, KGramIndexNode child) {
+		if ((int) c < MINIMUM_ASCII_VALUE || (int) c > MAXIMUM_ASCII_VALUE) {
+			throw new IllegalArgumentException(
+					"Attempted to add a character to the Markov Model which is outside the range of ["
+							+ (char) MINIMUM_ASCII_VALUE + "-" + (char) MINIMUM_ASCII_VALUE + "]");
+		}
+
+		child.setLetter(c);
+
+		this.transitions[resolveIndex(c)] = child;
+	}
+
+	private static int resolveIndex(char c) {
+		return ((int) c) - MINIMUM_ASCII_VALUE;
 	}
 
 	public void increment() {
@@ -63,9 +76,24 @@ public class KGramIndexNode {
 	}
 
 	/**
-	 * @return the transitionMap
+	 * @return the letter
 	 */
-	public Map<Character, KGramIndexNode> getTransitionMap() {
-		return transitionMap;
+	public char getLetter() {
+		return letter;
+	}
+
+	/**
+	 * @param letter
+	 *            the letter to set
+	 */
+	public void setLetter(char letter) {
+		this.letter = letter;
+	}
+
+	/**
+	 * @return the transitions array
+	 */
+	public KGramIndexNode[] getTransitions() {
+		return transitions;
 	}
 }

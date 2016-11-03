@@ -19,7 +19,6 @@
 
 package com.ciphertool.sherlock.markov;
 
-import java.util.Map;
 import java.util.Random;
 
 import org.slf4j.Logger;
@@ -39,6 +38,7 @@ public class MarkovModelTest {
 		importer = new MarkovImporterImpl();
 		importer.setCorpusDirectory("src/main/data/corpus");
 		importer.setOrder(ORDER);
+		importer.setMinCount(1);
 
 		model = importer.importCorpus();
 	}
@@ -52,22 +52,40 @@ public class MarkovModelTest {
 		for (int i = 0; i < 100; i++) {
 			KGramIndexNode match = model.find(root);
 
-			Map<Character, KGramIndexNode> transitions = null;
+			KGramIndexNode[] transitions = null;
 
 			if (match != null) {
-				transitions = match.getTransitionMap();
+				transitions = match.getTransitions();
 			}
 
-			if (transitions == null || transitions.isEmpty()) {
+			if (transitions == null || transitions.length == 0) {
 				log.info("Could not find transition for root: " + root);
 
 				break;
 			}
 
-			Random rand = new Random();
-			int randomIndex = rand.nextInt(transitions.size());
+			int count = 0;
+			for (int j = 0; j < transitions.length; j++) {
+				if (transitions[j] != null) {
+					count++;
+				}
+			}
 
-			Character nextSymbol = (Character) transitions.keySet().toArray()[randomIndex];
+			KGramIndexNode[] tempArray = new KGramIndexNode[count];
+
+			count = 0;
+			for (int j = 0; j < transitions.length; j++) {
+				if (transitions[j] != null) {
+					tempArray[count] = transitions[j];
+
+					count++;
+				}
+			}
+
+			Random rand = new Random();
+			int randomIndex = rand.nextInt(tempArray.length);
+
+			char nextSymbol = tempArray[randomIndex].getLetter();
 			sb.append(nextSymbol);
 
 			root = root.substring(1) + nextSymbol;
