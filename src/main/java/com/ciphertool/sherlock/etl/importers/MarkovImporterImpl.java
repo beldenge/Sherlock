@@ -24,6 +24,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,14 +33,16 @@ import org.springframework.beans.factory.annotation.Required;
 import com.ciphertool.sherlock.markov.MarkovModel;
 
 public class MarkovImporterImpl implements MarkovImporter {
-	private static Logger		log			= LoggerFactory.getLogger(MarkovImporterImpl.class);
+	private static Logger			log									= LoggerFactory.getLogger(MarkovImporterImpl.class);
 
-	private static final String	EXTENSION	= ".txt";
-	private static final String	NON_ALPHA	= "[^a-zA-Z]";
+	private static final String		EXTENSION							= ".txt";
+	private static final String		NON_ALPHA							= ".*[^a-z].*";
+	private static final String		WHITESPACE_AND_INTER_SENTENCE_PUNC	= "[\\s-,;()`'\"]";
+	private static final Pattern	PATTERN								= Pattern.compile(NON_ALPHA);
 
-	private String				corpusDirectory;
-	private Integer				order;
-	private Integer				minCount;
+	private String					corpusDirectory;
+	private Integer					order;
+	private Integer					minCount;
 
 	@Override
 	public MarkovModel importCorpus() {
@@ -87,10 +90,15 @@ public class MarkovImporterImpl implements MarkovImporter {
 		try {
 			String content = new String(Files.readAllBytes(path));
 
-			content = content.replaceAll(NON_ALPHA, "").toLowerCase();
+			content = content.replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "").toLowerCase();
 
 			for (int i = 0; i < content.length() - order; i++) {
 				String kGramString = content.substring(i, i + order);
+
+				if (PATTERN.matcher(kGramString + content.charAt(i + order)).matches()) {
+					continue;
+				}
+
 				Character symbol = content.charAt(i + order);
 
 				model.addTransition(kGramString, symbol);
