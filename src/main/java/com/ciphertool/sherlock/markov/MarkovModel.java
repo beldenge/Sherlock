@@ -19,11 +19,17 @@
 
 package com.ciphertool.sherlock.markov;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.core.task.TaskExecutor;
 
 public class MarkovModel {
 	private static Logger					log					= LoggerFactory.getLogger(MarkovModel.class);
@@ -33,11 +39,33 @@ public class MarkovModel {
 			'z' });
 
 	private KGramIndexNode					rootNode			= new KGramIndexNode(0);
-	private int								order;
 	private boolean							postProcessed		= false;
+	private Integer							order;
+	private TaskExecutor					taskExecutor;
 
-	public MarkovModel(int order) {
-		this.order = order;
+	/**
+	 * A concurrent task for normalizing a Markov model node.
+	 */
+	protected class NormalizeTask implements Callable<Void> {
+		private KGramIndexNode node;
+
+		public NormalizeTask() {
+		}
+
+		/**
+		 * @param node
+		 *            the KGramIndexNode to set
+		 */
+		public NormalizeTask(KGramIndexNode node) {
+			this.node = node;
+		}
+
+		@Override
+		public Void call() throws Exception {
+			normalize(this.node);
+
+			return null;
+		}
 	}
 
 	public void addTransition(String kGramString, Character symbol) {
@@ -68,16 +96,37 @@ public class MarkovModel {
 
 		log.info("Starting Markov model post-processing...");
 
-		normalize(this.getRootNode());
+		KGramIndexNode[] initialTransitions = this.rootNode.getTransitions();
+
+		List<FutureTask<Void>> futures = new ArrayList<FutureTask<Void>>(26);
+		FutureTask<Void> task;
+
+		for (int i = 0; i < initialTransitions.length; i++) {
+			KGramIndexNode node = initialTransitions[i];
+
+			if (node != null) {
+				task = new FutureTask<Void>(new NormalizeTask(node));
+				futures.add(task);
+				this.taskExecutor.execute(task);
+			}
+		}
+
+		for (FutureTask<Void> future : futures) {
+			try {
+				future.get();
+			} catch (InterruptedException ie) {
+				log.error("Caught InterruptedException while waiting for NormalizeTask ", ie);
+			} catch (ExecutionException ee) {
+				log.error("Caught ExecutionException while waiting for NormalizeTask ", ee);
+			}
+		}
 
 		if (minCount > 1) {
 			removeOutliers(this.getRootNode(), minCount);
 		}
 
-		KGramIndexNode[] transitions = this.getRootNode().getTransitions();
-
-		for (int i = 0; i < transitions.length; i++) {
-			KGramIndexNode node = transitions[i];
+		for (int i = 0; i < initialTransitions.length; i++) {
+			KGramIndexNode node = initialTransitions[i];
 
 			if (node != null) {
 				linkChild(node, String.valueOf(node.getLetter()));
@@ -127,7 +176,7 @@ public class MarkovModel {
 			KGramIndexNode child = transitions[i];
 
 			if (child != null) {
-				child.setRatio(Double.parseDouble(child.getCount().toString()) / Double.parseDouble(total.toString()));
+				child.setRatio((double) child.getCount() / (double) total);
 
 				normalize(child);
 			}
@@ -247,5 +296,23 @@ public class MarkovModel {
 				appendTransitions(parent + transitions[i].getLetter(), transitions[i].getLetter(), transitions[i], sb);
 			}
 		}
+	}
+
+	/**
+	 * @param order
+	 *            the order to set
+	 */
+	@Required
+	public void setOrder(Integer order) {
+		this.order = order;
+	}
+
+	/**
+	 * @param taskExecutor
+	 *            the taskExecutor to set
+	 */
+	@Required
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
 	}
 }

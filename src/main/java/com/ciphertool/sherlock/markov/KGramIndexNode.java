@@ -76,10 +76,13 @@ public class KGramIndexNode {
 	}
 
 	/**
+	 * All current usages of this method are thread-safe, but since it's used in a multi-threaded way, this is a
+	 * defensive measure in case future usage changes are not thread-safe.
+	 * 
 	 * @param ratio
 	 *            the ratio to set
 	 */
-	public void setRatio(double ratio) {
+	public synchronized void setRatio(double ratio) {
 		this.ratio = ratio;
 	}
 

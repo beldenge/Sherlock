@@ -31,6 +31,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -47,19 +49,18 @@ public class MarkovImporterImpl implements MarkovImporter {
 	private static final Pattern	PATTERN								= Pattern.compile(NON_ALPHA);
 
 	private String					corpusDirectory;
-	private Integer					order;
 	private Integer					minCount;
 	private TaskExecutor			taskExecutor;
+	private MarkovModel				model;
 
 	@Override
+	@PostConstruct
 	public MarkovModel importCorpus() {
 		long start = System.currentTimeMillis();
 
 		log.info("Starting corpus text import...");
 
-		MarkovModel model = new MarkovModel(order);
-
-		List<FutureTask<Void>> futures = parseFiles(Paths.get(corpusDirectory), model);
+		List<FutureTask<Void>> futures = parseFiles(Paths.get(this.corpusDirectory));
 
 		for (FutureTask<Void> future : futures) {
 			try {
@@ -73,32 +74,30 @@ public class MarkovImporterImpl implements MarkovImporter {
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 
-		model.postProcess(minCount);
+		this.model.postProcess(this.minCount);
 
-		return model;
+		return this.model;
 	}
 
 	/**
 	 * A concurrent task for parsing a file into a Markov model.
 	 */
 	protected class ParseFileTask implements Callable<Void> {
-		private MarkovModel	model;
-		private Path		path;
+		private Path path;
 
 		/**
-		 * @param model
-		 *            the MarkovModel to set
 		 * @param path
 		 *            the Path to set
 		 */
-		public ParseFileTask(MarkovModel model, Path path) {
-			this.model = model;
+		public ParseFileTask(Path path) {
 			this.path = path;
 		}
 
 		@Override
 		public Void call() throws Exception {
 			log.debug("Importing file " + this.path.toString());
+
+			int order = model.getOrder();
 
 			try {
 				String content = new String(Files.readAllBytes(this.path));
@@ -114,7 +113,7 @@ public class MarkovImporterImpl implements MarkovImporter {
 
 					Character symbol = content.charAt(i + order);
 
-					this.model.addTransition(kGramString, symbol);
+					model.addTransition(kGramString, symbol);
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);
@@ -124,14 +123,14 @@ public class MarkovImporterImpl implements MarkovImporter {
 		}
 	}
 
-	protected List<FutureTask<Void>> parseFiles(Path path, MarkovModel model) {
+	protected List<FutureTask<Void>> parseFiles(Path path) {
 		List<FutureTask<Void>> tasks = new ArrayList<FutureTask<Void>>();
 		FutureTask<Void> task;
 
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
 			for (Path entry : stream) {
 				if (Files.isDirectory(entry)) {
-					tasks.addAll(parseFiles(entry, model));
+					tasks.addAll(parseFiles(entry));
 				} else {
 					String ext = entry.toString().substring(entry.toString().lastIndexOf('.'));
 
@@ -141,7 +140,7 @@ public class MarkovImporterImpl implements MarkovImporter {
 						continue;
 					}
 
-					task = new FutureTask<Void>(new ParseFileTask(model, entry));
+					task = new FutureTask<Void>(new ParseFileTask(entry));
 					tasks.add(task);
 					this.taskExecutor.execute(task);
 				}
@@ -157,6 +156,7 @@ public class MarkovImporterImpl implements MarkovImporter {
 	 * @param taskExecutor
 	 *            the taskExecutor to set
 	 */
+	@Required
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
@@ -171,20 +171,20 @@ public class MarkovImporterImpl implements MarkovImporter {
 	}
 
 	/**
-	 * @param order
-	 *            the order to set
-	 */
-	@Required
-	public void setOrder(Integer order) {
-		this.order = order;
-	}
-
-	/**
 	 * @param minCount
 	 *            the minCount to set
 	 */
 	@Required
 	public void setMinCount(Integer minCount) {
 		this.minCount = minCount;
+	}
+
+	/**
+	 * @param model
+	 *            the model to set
+	 */
+	@Required
+	public void setModel(MarkovModel model) {
+		this.model = model;
 	}
 }

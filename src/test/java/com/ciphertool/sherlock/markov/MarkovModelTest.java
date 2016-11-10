@@ -19,10 +19,13 @@
 
 package com.ciphertool.sherlock.markov;
 
+import static org.mockito.Mockito.spy;
+
 import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.ciphertool.sherlock.etl.importers.MarkovImporterImpl;
 
@@ -35,12 +38,24 @@ public class MarkovModelTest {
 
 	// @BeforeClass
 	public static void setUp() {
-		importer = new MarkovImporterImpl();
-		importer.setCorpusDirectory("src/main/data/corpus");
-		importer.setOrder(ORDER);
-		importer.setMinCount(1);
+		ThreadPoolTaskExecutor taskExecutorSpy = spy(new ThreadPoolTaskExecutor());
+		taskExecutorSpy.setCorePoolSize(4);
+		taskExecutorSpy.setMaxPoolSize(4);
+		taskExecutorSpy.setQueueCapacity(100);
+		taskExecutorSpy.setKeepAliveSeconds(1);
+		taskExecutorSpy.setAllowCoreThreadTimeOut(true);
+		taskExecutorSpy.initialize();
 
-		model = importer.importCorpus();
+		model = new MarkovModel();
+		model.setOrder(ORDER);
+		model.setTaskExecutor(taskExecutorSpy);
+
+		importer = new MarkovImporterImpl();
+		importer.setModel(model);
+		importer.setCorpusDirectory("../Sherlock/src/main/data/corpus");
+		importer.setMinCount(1);
+		importer.setTaskExecutor(taskExecutorSpy);
+		importer.importCorpus();
 	}
 
 	// @Test
