@@ -74,7 +74,9 @@ public class MarkovModel {
 
 		normalize(this.getRootNode());
 
-		removeOutliers(this.getRootNode(), minCount);
+		if (minCount > 1) {
+			removeOutliers(this.getRootNode(), minCount);
+		}
 
 		KGramIndexNode[] transitions = this.getRootNode().getTransitions();
 
