@@ -68,6 +68,31 @@ public class MarkovModel {
 		}
 	}
 
+	/**
+	 * A concurrent task for linking leaf nodes in a Markov model.
+	 */
+	protected class LinkChildTask implements Callable<Void> {
+		private KGramIndexNode node;
+
+		public LinkChildTask() {
+		}
+
+		/**
+		 * @param node
+		 *            the KGramIndexNode to set
+		 */
+		public LinkChildTask(KGramIndexNode node) {
+			this.node = node;
+		}
+
+		@Override
+		public Void call() throws Exception {
+			linkChild(this.node, String.valueOf(this.node.getLetter()));
+
+			return null;
+		}
+	}
+
 	public void addTransition(String kGramString, Character symbol) {
 		if (kGramString.length() != order) {
 			log.error("Expected k-gram of order " + order + ", but a k-gram of order " + kGramString.length()
@@ -125,11 +150,25 @@ public class MarkovModel {
 			removeOutliers(this.getRootNode(), minCount);
 		}
 
+		futures = new ArrayList<FutureTask<Void>>(26);
+
 		for (int i = 0; i < initialTransitions.length; i++) {
 			KGramIndexNode node = initialTransitions[i];
 
 			if (node != null) {
-				linkChild(node, String.valueOf(node.getLetter()));
+				task = new FutureTask<Void>(new LinkChildTask(node));
+				futures.add(task);
+				this.taskExecutor.execute(task);
+			}
+		}
+
+		for (FutureTask<Void> future : futures) {
+			try {
+				future.get();
+			} catch (InterruptedException ie) {
+				log.error("Caught InterruptedException while waiting for LinkChildTask ", ie);
+			} catch (ExecutionException ee) {
+				log.error("Caught ExecutionException while waiting for LinkChildTask ", ee);
 			}
 		}
 
