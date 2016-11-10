@@ -26,6 +26,14 @@ public class KGramIndexNode {
 		return this.transitions[resolveIndex(c)];
 	}
 
+	public synchronized void addOrIncrementChildAsync(Character firstLetter, int level) {
+		if (!this.containsChild(firstLetter)) {
+			this.putChild(firstLetter, new KGramIndexNode(level));
+		}
+
+		this.getChild(firstLetter).increment();
+	}
+
 	public void putChild(char c, KGramIndexNode child) {
 		if ((int) c < MINIMUM_ASCII_VALUE || (int) c > MAXIMUM_ASCII_VALUE) {
 			throw new IllegalArgumentException(

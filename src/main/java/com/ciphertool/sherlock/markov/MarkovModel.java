@@ -52,11 +52,7 @@ public class MarkovModel {
 	protected void populateMap(KGramIndexNode currentNode, String kGramString) {
 		Character firstLetter = kGramString.charAt(0);
 
-		if (!currentNode.containsChild(firstLetter)) {
-			currentNode.putChild(firstLetter, new KGramIndexNode(order - (kGramString.length() - 2)));
-		}
-
-		currentNode.getChild(firstLetter).increment();
+		currentNode.addOrIncrementChildAsync(firstLetter, order - (kGramString.length() - 2));
 
 		if (kGramString.length() > 1) {
 			populateMap(currentNode.getChild(firstLetter), kGramString.substring(1));

@@ -24,11 +24,17 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.core.task.TaskExecutor;
 
 import com.ciphertool.sherlock.markov.MarkovModel;
 
@@ -43,6 +49,7 @@ public class MarkovImporterImpl implements MarkovImporter {
 	private String					corpusDirectory;
 	private Integer					order;
 	private Integer					minCount;
+	private TaskExecutor			taskExecutor;
 
 	@Override
 	public MarkovModel importCorpus() {
@@ -51,7 +58,18 @@ public class MarkovImporterImpl implements MarkovImporter {
 		log.info("Starting corpus text import...");
 
 		MarkovModel model = new MarkovModel(order);
-		parseFiles(Paths.get(corpusDirectory), model);
+
+		List<FutureTask<Void>> futures = parseFiles(Paths.get(corpusDirectory), model);
+
+		for (FutureTask<Void> future : futures) {
+			try {
+				future.get();
+			} catch (InterruptedException ie) {
+				log.error("Caught InterruptedException while waiting for ParseFileTask ", ie);
+			} catch (ExecutionException ee) {
+				log.error("Caught ExecutionException while waiting for ParseFileTask ", ee);
+			}
+		}
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 
@@ -60,11 +78,60 @@ public class MarkovImporterImpl implements MarkovImporter {
 		return model;
 	}
 
-	protected MarkovModel parseFiles(Path path, MarkovModel model) {
+	/**
+	 * A concurrent task for parsing a file into a Markov model.
+	 */
+	protected class ParseFileTask implements Callable<Void> {
+		private MarkovModel	model;
+		private Path		path;
+
+		/**
+		 * @param model
+		 *            the MarkovModel to set
+		 * @param path
+		 *            the Path to set
+		 */
+		public ParseFileTask(MarkovModel model, Path path) {
+			this.model = model;
+			this.path = path;
+		}
+
+		@Override
+		public Void call() throws Exception {
+			log.debug("Importing file " + this.path.toString());
+
+			try {
+				String content = new String(Files.readAllBytes(this.path));
+
+				content = content.replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "").toLowerCase();
+
+				for (int i = 0; i < content.length() - order; i++) {
+					String kGramString = content.substring(i, i + order);
+
+					if (PATTERN.matcher(kGramString + content.charAt(i + order)).matches()) {
+						continue;
+					}
+
+					Character symbol = content.charAt(i + order);
+
+					this.model.addTransition(kGramString, symbol);
+				}
+			} catch (IOException ioe) {
+				log.error("Unable to parse file: " + this.path.toString(), ioe);
+			}
+
+			return null;
+		}
+	}
+
+	protected List<FutureTask<Void>> parseFiles(Path path, MarkovModel model) {
+		List<FutureTask<Void>> tasks = new ArrayList<FutureTask<Void>>();
+		FutureTask<Void> task;
+
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
 			for (Path entry : stream) {
 				if (Files.isDirectory(entry)) {
-					parseFiles(entry, model);
+					tasks.addAll(parseFiles(entry, model));
 				} else {
 					String ext = entry.toString().substring(entry.toString().lastIndexOf('.'));
 
@@ -74,38 +141,24 @@ public class MarkovImporterImpl implements MarkovImporter {
 						continue;
 					}
 
-					parseFile(entry, model);
+					task = new FutureTask<Void>(new ParseFileTask(model, entry));
+					tasks.add(task);
+					this.taskExecutor.execute(task);
 				}
 			}
 		} catch (IOException ioe) {
 			log.error("Unable to parse files due to:" + ioe.getMessage(), ioe);
 		}
 
-		return model;
+		return tasks;
 	}
 
-	protected void parseFile(Path path, MarkovModel model) {
-		log.debug("Importing file " + path.toString());
-
-		try {
-			String content = new String(Files.readAllBytes(path));
-
-			content = content.replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "").toLowerCase();
-
-			for (int i = 0; i < content.length() - order; i++) {
-				String kGramString = content.substring(i, i + order);
-
-				if (PATTERN.matcher(kGramString + content.charAt(i + order)).matches()) {
-					continue;
-				}
-
-				Character symbol = content.charAt(i + order);
-
-				model.addTransition(kGramString, symbol);
-			}
-		} catch (IOException ioe) {
-			log.error("Unable to parse file: " + path.toString(), ioe);
-		}
+	/**
+	 * @param taskExecutor
+	 *            the taskExecutor to set
+	 */
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
 	}
 
 	/**
