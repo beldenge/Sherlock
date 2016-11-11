@@ -21,6 +21,7 @@ package com.ciphertool.sherlock.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -38,19 +39,19 @@ import com.ciphertool.sherlock.entities.Word;
 import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
 
 public class IndexedWordMapDaoTest {
-	private static WordDao wordDaoMock;
-	private static IndexedWordMapDao indexedWordMapDao;
-	private static List<Word> wordsToReturn = new ArrayList<Word>();
-	private static Word word1;
-	private static Word word2;
-	private static Word word3;
-	private static Word word4;
-	private static Word word5;
-	private static Word word6;
-	private static Word word7;
-	private static Word word8;
-	private static Word word9;
-	private static Word word10;
+	private static WordDao				wordDaoMock;
+	private static IndexedWordMapDao	indexedWordMapDao;
+	private static List<Word>			wordsToReturn	= new ArrayList<Word>();
+	private static Word					word1;
+	private static Word					word2;
+	private static Word					word3;
+	private static Word					word4;
+	private static Word					word5;
+	private static Word					word6;
+	private static Word					word7;
+	private static Word					word8;
+	private static Word					word9;
+	private static Word					word10;
 
 	@BeforeClass
 	public static void setUp() {
@@ -77,17 +78,17 @@ public class IndexedWordMapDaoTest {
 		word10 = new Word("investment", PartOfSpeechType.PREPOSITION, 6);
 		wordsToReturn.add(word10);
 
-		when(wordDaoMock.findAll()).thenReturn(wordsToReturn);
+		when(wordDaoMock.findTopByFrequency(anyInt())).thenReturn(wordsToReturn);
 
 		indexedWordMapDao = new IndexedWordMapDao(wordDaoMock, -1);
 
-		verify(wordDaoMock, times(1)).findAll();
+		verify(wordDaoMock, times(1)).findTopByFrequency(anyInt());
 	}
 
 	@Test
 	public void testConstructor() {
 		reset(wordDaoMock);
-		when(wordDaoMock.findAll()).thenReturn(wordsToReturn);
+		when(wordDaoMock.findTopByFrequency(anyInt())).thenReturn(wordsToReturn);
 
 		IndexedWordMapDao IndexedWordMapDao = new IndexedWordMapDao(wordDaoMock, -1);
 
@@ -221,8 +222,7 @@ public class IndexedWordMapDaoTest {
 	public void testBuildIndexedFrequencyMapByPartOfSpeech() {
 		Map<PartOfSpeechType, ArrayList<Word>> partOfSpeechWordMap = IndexedWordMapDao.mapByPartOfSpeech(wordsToReturn);
 
-		Map<PartOfSpeechType, int[]> partOfSpeechIndexedMap = IndexedWordMapDao
-				.buildIndexedFrequencyMapByPartOfSpeech(partOfSpeechWordMap);
+		Map<PartOfSpeechType, int[]> partOfSpeechIndexedMap = IndexedWordMapDao.buildIndexedFrequencyMapByPartOfSpeech(partOfSpeechWordMap);
 
 		assertEquals(10, partOfSpeechIndexedMap.size());
 

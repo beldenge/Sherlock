@@ -24,9 +24,10 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.ciphertool.sherlock.DatabaseConstants;
 import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
 
-@Document(collection = "partsOfSpeech")
+@Document(collection = DatabaseConstants.PARTS_OF_SPEECH_COLLECTION)
 @CompoundIndex(def = "{ 'partOfSpeech': 1, 'word': 1 }", unique = true, background = true)
 public class Word {
 	@Id

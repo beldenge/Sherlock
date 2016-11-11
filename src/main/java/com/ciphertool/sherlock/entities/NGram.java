@@ -24,7 +24,9 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "nGram")
+import com.ciphertool.sherlock.DatabaseConstants;
+
+@Document(collection = DatabaseConstants.NGRAM_COLLECTION)
 @CompoundIndex(def = "{ 'nGram': 1, 'numWords': 1 }", unique = true, background = true)
 public class NGram {
 	@Id

@@ -24,8 +24,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
 
 import com.ciphertool.sherlock.entities.Word;
 
@@ -33,21 +36,22 @@ public class UniqueWordListDao implements WordListDao {
 	private static Logger	log			= LoggerFactory.getLogger(UniqueWordListDao.class);
 
 	private List<Word>		wordList	= new ArrayList<Word>();
+	private WordDao			wordDao;
+	private Integer			topWords;
 
 	/**
-	 * Constructor requiring a WordDao and top number of Words.
-	 * 
 	 * @param wordDao
 	 *            the WordDao to use for populating the internal List
 	 * @param top
 	 *            the top number of words
 	 */
-	public UniqueWordListDao(WordDao wordDao, Integer top) {
+	@PostConstruct
+	public void init() {
 		if (wordDao == null) {
 			throw new IllegalArgumentException("Error constructing UniqueWordListDao.  WordDao cannot be null.");
 		}
 
-		if (top == null) {
+		if (topWords == null) {
 			throw new IllegalArgumentException(
 					"Error constructing UniqueWordListDao.  Top cannot be null.  Please ensure top is either set to a positive number, or to -1 to be unbounded.");
 		}
@@ -56,11 +60,7 @@ public class UniqueWordListDao implements WordListDao {
 
 		long start = System.currentTimeMillis();
 
-		if (top < 0) {
-			wordList.addAll(wordDao.findAllUniqueWords());
-		} else {
-			wordList.addAll(wordDao.findTopUniqueWordsByFrequency(top));
-		}
+		wordList.addAll(wordDao.findTopUniqueWordsByFrequency(topWords));
 
 		log.info("Finished fetching words from database in " + (System.currentTimeMillis() - start) + "ms.");
 
@@ -87,5 +87,23 @@ public class UniqueWordListDao implements WordListDao {
 
 	public List<Word> getTopWords(int top) {
 		return wordList.subList(0, Math.min(wordList.size(), top));
+	}
+
+	/**
+	 * @param wordDao
+	 *            the wordDao to set
+	 */
+	@Required
+	public void setWordDao(WordDao wordDao) {
+		this.wordDao = wordDao;
+	}
+
+	/**
+	 * @param topWords
+	 *            the topWords to set
+	 */
+	@Required
+	public void setTopWords(Integer topWords) {
+		this.topWords = topWords;
 	}
 }

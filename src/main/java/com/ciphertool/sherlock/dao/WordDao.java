@@ -23,10 +23,7 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.grou
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.limit;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.sort;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,44 +44,33 @@ public class WordDao {
 	private MongoOperations	mongoOperations;
 
 	/**
-	 * Returns a list of all Words, so words will be duplicated if they have multiple parts of speech.
-	 */
-	public List<Word> findAll() {
-		List<Word> result = mongoOperations.findAll(Word.class);
-
-		return result;
-	}
-
-	/**
 	 * Returns a list of top N Words, and words can be duplicated if they have multiple parts of speech.
 	 */
 	public List<Word> findTopByFrequency(int top) {
-		Query query = new Query().limit(top).with(new Sort(Sort.Direction.DESC, "frequencyWeight"));
+		Query query;
+
+		if (top > 0) {
+			query = new Query().limit(top).with(new Sort(Sort.Direction.DESC, "frequencyWeight"));
+		} else {
+			query = new Query().with(new Sort(Sort.Direction.DESC, "frequencyWeight"));
+		}
+
 		List<Word> result = mongoOperations.find(query, Word.class);
 
 		return result;
 	}
 
 	/**
-	 * Returns a list of all unique Words, irrespective of parts of speech.
-	 */
-	public List<Word> findAllUniqueWords() {
-		Query query = new Query();
-		query.fields().include("word");
-		query.fields().include("frequencyWeight");
-
-		Set<Word> result = new HashSet<Word>(mongoOperations.find(query, Word.class));
-
-		// We have to convert between set and list in order to achieve "distinct" functionality not supported by
-		// mongoOperations
-		return new ArrayList<Word>(result);
-	}
-
-	/**
 	 * Returns a list of top N unique Words, irrespective of parts of speech.
 	 */
 	public List<Word> findTopUniqueWordsByFrequency(int top) {
-		Aggregation aggregation = Aggregation.newAggregation(sort(Sort.Direction.DESC, "frequencyWeight"), group("word", "frequencyWeight"), limit(top));
+		Aggregation aggregation;
+
+		if (top > 0) {
+			aggregation = Aggregation.newAggregation(sort(Sort.Direction.DESC, "frequencyWeight"), group("word", "frequencyWeight"), limit(top));
+		} else {
+			aggregation = Aggregation.newAggregation(sort(Sort.Direction.DESC, "frequencyWeight"), group("word", "frequencyWeight"));
+		}
 
 		AggregationResults<Word> result = mongoOperations.aggregate(aggregation, Word.class, Word.class);
 

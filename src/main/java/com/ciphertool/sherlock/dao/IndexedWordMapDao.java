@@ -68,11 +68,7 @@ public class IndexedWordMapDao implements WordMapDao {
 
 		long start = System.currentTimeMillis();
 
-		if (top < 0) {
-			allWords.addAll(wordDao.findAll());
-		} else {
-			allWords.addAll(wordDao.findTopByFrequency(top));
-		}
+		allWords.addAll(wordDao.findTopByFrequency(top));
 
 		log.info("Finished fetching words from database in " + (System.currentTimeMillis() - start) + "ms.");
 

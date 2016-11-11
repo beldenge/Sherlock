@@ -22,6 +22,7 @@ package com.ciphertool.sherlock.dao;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,10 +40,10 @@ import com.ciphertool.sherlock.entities.Word;
 import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
 
 public class FrequencyWordListDaoTest {
-	private static List<Word> wordsToReturn = new ArrayList<Word>();
-	private static Word word1;
-	private static Word word2;
-	private static Word word3;
+	private static List<Word>	wordsToReturn	= new ArrayList<Word>();
+	private static Word			word1;
+	private static Word			word2;
+	private static Word			word3;
 
 	@BeforeClass
 	public static void setUp() {
@@ -58,9 +59,12 @@ public class FrequencyWordListDaoTest {
 	@SuppressWarnings("unchecked")
 	public void testConstructor() {
 		WordDao wordDaoMock = mock(WordDao.class);
-		when(wordDaoMock.findAllUniqueWords()).thenReturn(wordsToReturn);
+		when(wordDaoMock.findTopUniqueWordsByFrequency(anyInt())).thenReturn(wordsToReturn);
 
-		FrequencyWordListDao frequencyWordListDao = new FrequencyWordListDao(wordDaoMock, -1);
+		FrequencyWordListDao frequencyWordListDao = new FrequencyWordListDao();
+		frequencyWordListDao.setWordDao(wordDaoMock);
+		frequencyWordListDao.setTopWords(-1);
+		frequencyWordListDao.init();
 
 		Field wordListField = ReflectionUtils.findField(FrequencyWordListDao.class, "wordList");
 		ReflectionUtils.makeAccessible(wordListField);
@@ -72,26 +76,32 @@ public class FrequencyWordListDaoTest {
 		assertEquals(5, countOccurrences(word1, wordListFromObject));
 		assertEquals(1, countOccurrences(word2, wordListFromObject));
 		assertEquals(1, countOccurrences(word3, wordListFromObject));
-		verify(wordDaoMock, times(1)).findAllUniqueWords();
+		verify(wordDaoMock, times(1)).findTopUniqueWordsByFrequency(anyInt());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorWithNullWordMap() {
-		new FrequencyWordListDao(null, 10);
+		FrequencyWordListDao frequencyWordListDao = new FrequencyWordListDao();
+		frequencyWordListDao.setWordDao(null);
+		frequencyWordListDao.setTopWords(10);
+		frequencyWordListDao.init();
 	}
 
 	@Test
 	public void testFindRandomWord() {
 		WordDao wordDaoMock = mock(WordDao.class);
-		when(wordDaoMock.findAllUniqueWords()).thenReturn(wordsToReturn);
+		when(wordDaoMock.findTopUniqueWordsByFrequency(anyInt())).thenReturn(wordsToReturn);
 
-		FrequencyWordListDao frequencyWordListDao = new FrequencyWordListDao(wordDaoMock, -1);
+		FrequencyWordListDao frequencyWordListDao = new FrequencyWordListDao();
+		frequencyWordListDao.setWordDao(wordDaoMock);
+		frequencyWordListDao.setTopWords(-1);
+		frequencyWordListDao.init();
 
 		Word randomWord = frequencyWordListDao.findRandomWord();
 
 		assertNotNull(randomWord);
 		assertTrue(wordsToReturn.contains(randomWord));
-		verify(wordDaoMock, times(1)).findAllUniqueWords();
+		verify(wordDaoMock, times(1)).findTopUniqueWordsByFrequency(anyInt());
 	}
 
 	private static int countOccurrences(Word wordToCount, List<Word> words) {

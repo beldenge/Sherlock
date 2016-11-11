@@ -30,6 +30,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
+import com.ciphertool.sherlock.DatabaseConstants;
 import com.ciphertool.sherlock.entities.NGram;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -42,34 +43,11 @@ public class NGramDao {
 	private MongoOperations	mongoOperations;
 
 	/**
-	 * Returns a list of all NGrams. We have to use the low-level MongoDB API because otherwise the query takes forever
-	 * due to the limitation of Spring Data not providing cursor functionality.
-	 */
-	public List<NGram> findAllByNumWords(int numWordsQueryParam) {
-		DBCollection collection = mongoOperations.getCollection(mongoOperations.getCollectionName(NGram.class));
-
-		DBCursor cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam));
-
-		List<NGram> results = new ArrayList<NGram>();
-		while (cursor.hasNext()) {
-			DBObject next = cursor.next();
-
-			String nGram = (String) next.get("nGram");
-			Integer numWords = (Integer) next.get("numWords");
-			Long frequencyWeight = (Long) next.get("frequencyWeight");
-
-			results.add(new NGram(nGram, numWords, frequencyWeight));
-		}
-
-		return results;
-	}
-
-	/**
 	 * Returns a list of top N NGrams. We have to use the low-level MongoDB API because otherwise the query takes
 	 * forever due to the limitation of Spring Data not providing cursor functionality.
 	 */
 	public List<NGram> findTopMostFrequentByNumWords(int numWordsQueryParam, int top) {
-		DBCollection collection = mongoOperations.getCollection("nGram");
+		DBCollection collection = mongoOperations.getCollection(DatabaseConstants.NGRAM_COLLECTION);
 
 		DBCursor cursor;
 
@@ -77,7 +55,8 @@ public class NGramDao {
 			cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam)).sort(new BasicDBObject(
 					"frequencyWeight", -1)).limit(top);
 		} else {
-			cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam));
+			cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam)).sort(new BasicDBObject(
+					"frequencyWeight", -1));
 		}
 
 		List<NGram> results = new ArrayList<NGram>();

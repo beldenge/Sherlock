@@ -21,6 +21,7 @@ package com.ciphertool.sherlock.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -38,19 +39,19 @@ import com.ciphertool.sherlock.entities.Word;
 import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
 
 public class BasicWordMapDaoTest {
-	private static WordDao wordDaoMock;
-	private static BasicWordMapDao basicWordMapDao;
-	private static List<Word> wordsToReturn = new ArrayList<Word>();
-	private static Word word1;
-	private static Word word2;
-	private static Word word3;
-	private static Word word4;
-	private static Word word5;
-	private static Word word6;
-	private static Word word7;
-	private static Word word8;
-	private static Word word9;
-	private static Word word10;
+	private static WordDao			wordDaoMock;
+	private static BasicWordMapDao	basicWordMapDao;
+	private static List<Word>		wordsToReturn	= new ArrayList<Word>();
+	private static Word				word1;
+	private static Word				word2;
+	private static Word				word3;
+	private static Word				word4;
+	private static Word				word5;
+	private static Word				word6;
+	private static Word				word7;
+	private static Word				word8;
+	private static Word				word9;
+	private static Word				word10;
 
 	@BeforeClass
 	public static void setUp() {
@@ -77,19 +78,25 @@ public class BasicWordMapDaoTest {
 		word10 = new Word("investment", PartOfSpeechType.PREPOSITION);
 		wordsToReturn.add(word10);
 
-		when(wordDaoMock.findAll()).thenReturn(wordsToReturn);
+		when(wordDaoMock.findTopByFrequency(anyInt())).thenReturn(wordsToReturn);
 
-		basicWordMapDao = new BasicWordMapDao(wordDaoMock, -1);
+		basicWordMapDao = new BasicWordMapDao();
+		basicWordMapDao.setWordDao(wordDaoMock);
+		basicWordMapDao.setTopWords(-1);
+		basicWordMapDao.init();
 
-		verify(wordDaoMock, times(1)).findAll();
+		verify(wordDaoMock, times(1)).findTopByFrequency(anyInt());
 	}
 
 	@Test
-	public void testConstructor() {
+	public void testInit() {
 		reset(wordDaoMock);
-		when(wordDaoMock.findAll()).thenReturn(wordsToReturn);
+		when(wordDaoMock.findTopByFrequency(anyInt())).thenReturn(wordsToReturn);
 
-		BasicWordMapDao basicWordMapDao = new BasicWordMapDao(wordDaoMock, -1);
+		BasicWordMapDao basicWordMapDao = new BasicWordMapDao();
+		basicWordMapDao.setWordDao(wordDaoMock);
+		basicWordMapDao.setTopWords(-1);
+		basicWordMapDao.init();
 
 		assertEquals(10, basicWordMapDao.getPartOfSpeechWordMap().size());
 		assertEquals(10, basicWordMapDao.getLengthWordMap().size());
@@ -116,13 +123,19 @@ public class BasicWordMapDaoTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorWithNullWordMap() {
-		new BasicWordMapDao(null, 10);
+	public void testInitWithNullWordMap() {
+		BasicWordMapDao basicWordMapDao = new BasicWordMapDao();
+		basicWordMapDao.setWordDao(null);
+		basicWordMapDao.setTopWords(-1);
+		basicWordMapDao.init();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorWithZeroTop() {
-		new BasicWordMapDao(wordDaoMock, 0);
+	public void testInitWithZeroTop() {
+		BasicWordMapDao basicWordMapDao = new BasicWordMapDao();
+		basicWordMapDao.setWordDao(wordDaoMock);
+		basicWordMapDao.setTopWords(0);
+		basicWordMapDao.init();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
