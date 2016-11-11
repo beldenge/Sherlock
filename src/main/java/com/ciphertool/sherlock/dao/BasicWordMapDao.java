@@ -68,11 +68,11 @@ public class BasicWordMapDao implements WordMapDao {
 
 		allWords.addAll(wordDao.findTopByFrequency(topWords));
 
-		log.info("Finished fetching words from database in " + (System.currentTimeMillis() - start) + "ms.");
-
 		partOfSpeechWordMap = mapByPartOfSpeech(allWords);
 
 		lengthWordMap = mapByWordLength(allWords);
+
+		log.info("Finished fetching words from database in " + (System.currentTimeMillis() - start) + "ms.");
 	}
 
 	@Override

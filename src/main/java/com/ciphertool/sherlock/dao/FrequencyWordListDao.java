@@ -63,8 +63,6 @@ public class FrequencyWordListDao implements WordListDao {
 
 		wordList.addAll(wordDao.findTopUniqueWordsByFrequency(topWords));
 
-		log.info("Finished fetching words from database in " + (System.currentTimeMillis() - start) + "ms.");
-
 		List<Word> wordsToAdd = new ArrayList<Word>();
 
 		for (Word w : this.wordList) {
@@ -78,6 +76,8 @@ public class FrequencyWordListDao implements WordListDao {
 		}
 
 		this.wordList.addAll(wordsToAdd);
+
+		log.info("Finished fetching words from database in " + (System.currentTimeMillis() - start) + "ms.");
 	}
 
 	@Override
