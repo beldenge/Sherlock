@@ -71,9 +71,8 @@ public class NGramDao {
 	public List<NGram> findTopMostFrequentByNumWords(int numWordsQueryParam, int top) {
 		DBCollection collection = mongoOperations.getCollection(mongoOperations.getCollectionName(NGram.class));
 
-		DBCursor cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam));
-		cursor.sort(new BasicDBObject("frequencyWeight", -1));
-		cursor.limit(top);
+		DBCursor cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam)).sort(new BasicDBObject(
+				"frequencyWeight", -1)).limit(top);
 
 		List<NGram> results = new ArrayList<NGram>();
 		while (cursor.hasNext()) {
