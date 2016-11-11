@@ -25,9 +25,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.PostConstruct;
@@ -35,7 +34,6 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.core.task.TaskExecutor;
 
 import com.ciphertool.sherlock.entities.NGram;
 
@@ -47,7 +45,6 @@ public class UniqueNGramListDao implements NGramListDao {
 	private Integer						topThreeGrams;
 	private Integer						topFourGrams;
 	private Integer						topFiveGrams;
-	private TaskExecutor				taskExecutor;
 
 	private List<NGram>					twoGramList;
 	private List<NGram>					threeGramList;
@@ -55,30 +52,6 @@ public class UniqueNGramListDao implements NGramListDao {
 	private List<NGram>					fiveGramList;
 
 	private Map<Integer, List<NGram>>	mapOfNGramLists	= new HashMap<Integer, List<NGram>>(4);
-
-	/**
-	 * A concurrent task for normalizing a Markov model node.
-	 */
-	protected class FindNGramsTask implements Callable<List<NGram>> {
-		private int	numWords;
-		private int	top;
-
-		/**
-		 * @param numWords
-		 *            the numWords to set
-		 * @param top
-		 *            the top words to find
-		 */
-		public FindNGramsTask(int numWords, int top) {
-			this.numWords = numWords;
-			this.top = top;
-		}
-
-		@Override
-		public List<NGram> call() throws Exception {
-			return nGramDao.findTopMostFrequentByNumWords(numWords, top);
-		}
-	}
 
 	/**
 	 * @throws ExecutionException
@@ -124,17 +97,10 @@ public class UniqueNGramListDao implements NGramListDao {
 
 		long start = System.currentTimeMillis();
 
-		FutureTask<List<NGram>> twoGrams = new FutureTask<List<NGram>>(new FindNGramsTask(2, topTwoGrams));
-		this.taskExecutor.execute(twoGrams);
-
-		FutureTask<List<NGram>> threeGrams = new FutureTask<List<NGram>>(new FindNGramsTask(3, topThreeGrams));
-		this.taskExecutor.execute(threeGrams);
-
-		FutureTask<List<NGram>> fourGrams = new FutureTask<List<NGram>>(new FindNGramsTask(4, topFourGrams));
-		this.taskExecutor.execute(fourGrams);
-
-		FutureTask<List<NGram>> fiveGrams = new FutureTask<List<NGram>>(new FindNGramsTask(5, topFiveGrams));
-		this.taskExecutor.execute(fiveGrams);
+		Future<List<NGram>> twoGrams = nGramDao.findTopMostFrequentByNumWordsAsync(2, topTwoGrams);
+		Future<List<NGram>> threeGrams = nGramDao.findTopMostFrequentByNumWordsAsync(3, topThreeGrams);
+		Future<List<NGram>> fourGrams = nGramDao.findTopMostFrequentByNumWordsAsync(4, topFourGrams);
+		Future<List<NGram>> fiveGrams = nGramDao.findTopMostFrequentByNumWordsAsync(5, topFiveGrams);
 
 		fiveGramList.addAll(fiveGrams.get());
 		fourGramList.addAll(fourGrams.get());
@@ -221,14 +187,5 @@ public class UniqueNGramListDao implements NGramListDao {
 	@Required
 	public void setTopFiveGrams(Integer topFiveGrams) {
 		this.topFiveGrams = topFiveGrams;
-	}
-
-	/**
-	 * @param taskExecutor
-	 *            the taskExecutor to set
-	 */
-	@Required
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		this.taskExecutor = taskExecutor;
 	}
 }

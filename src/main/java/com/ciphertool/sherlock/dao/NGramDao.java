@@ -21,6 +21,7 @@ package com.ciphertool.sherlock.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,8 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 
 import com.ciphertool.sherlock.DatabaseConstants;
 import com.ciphertool.sherlock.entities.NGram;
@@ -41,6 +44,11 @@ public class NGramDao {
 	private Logger			log	= LoggerFactory.getLogger(getClass());
 
 	private MongoOperations	mongoOperations;
+
+	@Async
+	public Future<List<NGram>> findTopMostFrequentByNumWordsAsync(int numWords, int top) throws InterruptedException {
+		return new AsyncResult<>(findTopMostFrequentByNumWords(5, top));
+	}
 
 	/**
 	 * Returns a list of top N NGrams. We have to use the low-level MongoDB API because otherwise the query takes
