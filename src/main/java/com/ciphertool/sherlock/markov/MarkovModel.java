@@ -49,9 +49,6 @@ public class MarkovModel {
 	protected class NormalizeTask implements Callable<Void> {
 		private KGramIndexNode node;
 
-		public NormalizeTask() {
-		}
-
 		/**
 		 * @param node
 		 *            the KGramIndexNode to set
@@ -73,9 +70,6 @@ public class MarkovModel {
 	 */
 	protected class LinkChildTask implements Callable<Void> {
 		private KGramIndexNode node;
-
-		public LinkChildTask() {
-		}
 
 		/**
 		 * @param node

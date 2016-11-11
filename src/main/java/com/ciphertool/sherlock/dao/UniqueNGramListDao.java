@@ -25,91 +25,121 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadLocalRandom;
+
+import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.core.task.TaskExecutor;
 
 import com.ciphertool.sherlock.entities.NGram;
 
 public class UniqueNGramListDao implements NGramListDao {
 	private static Logger				log				= LoggerFactory.getLogger(UniqueNGramListDao.class);
 
-	private List<NGram>					twoGramList		= new ArrayList<NGram>();
-	private List<NGram>					threeGramList	= new ArrayList<NGram>();
-	private List<NGram>					fourGramList	= new ArrayList<NGram>();
-	private List<NGram>					fiveGramList	= new ArrayList<NGram>();
+	private NGramDao					nGramDao;
+	private Integer						topTwoGrams;
+	private Integer						topThreeGrams;
+	private Integer						topFourGrams;
+	private Integer						topFiveGrams;
+	private TaskExecutor				taskExecutor;
 
-	private Map<Integer, List<NGram>>	mapOfNGramLists	= new HashMap<Integer, List<NGram>>();
+	private List<NGram>					twoGramList;
+	private List<NGram>					threeGramList;
+	private List<NGram>					fourGramList;
+	private List<NGram>					fiveGramList;
 
-	{
-		mapOfNGramLists.put(new Integer(2), twoGramList);
-		mapOfNGramLists.put(new Integer(3), threeGramList);
-		mapOfNGramLists.put(new Integer(4), fourGramList);
-		mapOfNGramLists.put(new Integer(5), fiveGramList);
+	private Map<Integer, List<NGram>>	mapOfNGramLists	= new HashMap<Integer, List<NGram>>(4);
+
+	/**
+	 * A concurrent task for normalizing a Markov model node.
+	 */
+	protected class FindNGramsTask implements Callable<List<NGram>> {
+		private int	numWords;
+		private int	top;
+
+		/**
+		 * @param numWords
+		 *            the numWords to set
+		 * @param top
+		 *            the top words to find
+		 */
+		public FindNGramsTask(int numWords, int top) {
+			this.numWords = numWords;
+			this.top = top;
+		}
+
+		@Override
+		public List<NGram> call() throws Exception {
+			return nGramDao.findTopMostFrequentByNumWords(numWords, top);
+		}
 	}
 
 	/**
-	 * Constructor requiring a NGramDao and top number of NGrams.
-	 * 
-	 * @param nGramDao
-	 *            the NGramDao to use for populating the internal Lists
-	 * @param top
-	 *            the top number of n-grams
+	 * @throws ExecutionException
+	 * @throws InterruptedException
 	 */
-	public UniqueNGramListDao(NGramDao nGramDao, Integer topTwoGrams, Integer topThreeGrams, Integer topFourGrams,
-			Integer topFiveGrams) {
-		if (nGramDao == null) {
+	@PostConstruct
+	public void init() throws InterruptedException, ExecutionException {
+		if (this.nGramDao == null) {
 			throw new IllegalArgumentException("Error constructing UniqueNGramListDao.  NGramDao cannot be null.");
 		}
 
-		if (topTwoGrams == null) {
+		if (this.topTwoGrams == null) {
 			throw new IllegalArgumentException(
 					"Error constructing UniqueNGramListDao.  Top cannot be null.  Please ensure top is either set to a positive number, or to -1 to be unbounded.");
 		}
 
-		if (topThreeGrams == null) {
+		if (this.topThreeGrams == null) {
 			throw new IllegalArgumentException(
 					"Error constructing UniqueNGramListDao.  Top cannot be null.  Please ensure top is either set to a positive number, or to -1 to be unbounded.");
 		}
 
-		if (topFourGrams == null) {
+		if (this.topFourGrams == null) {
 			throw new IllegalArgumentException(
 					"Error constructing UniqueNGramListDao.  Top cannot be null.  Please ensure top is either set to a positive number, or to -1 to be unbounded.");
 		}
 
-		if (topFiveGrams == null) {
+		if (this.topFiveGrams == null) {
 			throw new IllegalArgumentException(
 					"Error constructing UniqueNGramListDao.  Top cannot be null.  Please ensure top is either set to a positive number, or to -1 to be unbounded.");
 		}
+
+		twoGramList = new ArrayList<NGram>(topTwoGrams);
+		threeGramList = new ArrayList<NGram>(topThreeGrams);
+		fourGramList = new ArrayList<NGram>(topFourGrams);
+		fiveGramList = new ArrayList<NGram>(topFiveGrams);
+
+		mapOfNGramLists.put(2, twoGramList);
+		mapOfNGramLists.put(3, threeGramList);
+		mapOfNGramLists.put(4, fourGramList);
+		mapOfNGramLists.put(5, fiveGramList);
 
 		log.info("Beginning fetching of n-grams from database.");
 
 		long start = System.currentTimeMillis();
 
-		if (topTwoGrams < 0) {
-			twoGramList.addAll(nGramDao.findAllByNumWords(2));
-		} else if (topTwoGrams > 0) {
-			twoGramList.addAll(nGramDao.findTopMostFrequentByNumWords(2, topTwoGrams));
-		}
+		FutureTask<List<NGram>> twoGrams = new FutureTask<List<NGram>>(new FindNGramsTask(2, topTwoGrams));
+		this.taskExecutor.execute(twoGrams);
 
-		if (topThreeGrams < 0) {
-			threeGramList.addAll(nGramDao.findAllByNumWords(3));
-		} else if (topThreeGrams > 0) {
-			threeGramList.addAll(nGramDao.findTopMostFrequentByNumWords(3, topThreeGrams));
-		}
+		FutureTask<List<NGram>> threeGrams = new FutureTask<List<NGram>>(new FindNGramsTask(3, topThreeGrams));
+		this.taskExecutor.execute(threeGrams);
 
-		if (topFourGrams < 0) {
-			fourGramList.addAll(nGramDao.findAllByNumWords(4));
-		} else if (topFourGrams > 0) {
-			fourGramList.addAll(nGramDao.findTopMostFrequentByNumWords(4, topFourGrams));
-		}
+		FutureTask<List<NGram>> fourGrams = new FutureTask<List<NGram>>(new FindNGramsTask(4, topFourGrams));
+		this.taskExecutor.execute(fourGrams);
 
-		if (topFiveGrams < 0) {
-			fiveGramList.addAll(nGramDao.findAllByNumWords(5));
-		} else if (topFiveGrams > 0) {
-			fiveGramList.addAll(nGramDao.findTopMostFrequentByNumWords(5, topFiveGrams));
-		}
+		FutureTask<List<NGram>> fiveGrams = new FutureTask<List<NGram>>(new FindNGramsTask(5, topFiveGrams));
+		this.taskExecutor.execute(fiveGrams);
+
+		fiveGramList.addAll(fiveGrams.get());
+		fourGramList.addAll(fourGrams.get());
+		threeGramList.addAll(threeGrams.get());
+		twoGramList.addAll(twoGrams.get());
 
 		log.info("Finished fetching n-grams from database in " + (System.currentTimeMillis() - start) + "ms.");
 
@@ -146,5 +176,59 @@ public class UniqueNGramListDao implements NGramListDao {
 	@Override
 	public Map<Integer, List<NGram>> getMapOfNGramLists() {
 		return Collections.unmodifiableMap(mapOfNGramLists);
+	}
+
+	/**
+	 * @param nGramDao
+	 *            the nGramDao to set
+	 */
+	@Required
+	public void setnGramDao(NGramDao nGramDao) {
+		this.nGramDao = nGramDao;
+	}
+
+	/**
+	 * @param topTwoGrams
+	 *            the topTwoGrams to set
+	 */
+	@Required
+	public void setTopTwoGrams(Integer topTwoGrams) {
+		this.topTwoGrams = topTwoGrams;
+	}
+
+	/**
+	 * @param topThreeGrams
+	 *            the topThreeGrams to set
+	 */
+	@Required
+	public void setTopThreeGrams(Integer topThreeGrams) {
+		this.topThreeGrams = topThreeGrams;
+	}
+
+	/**
+	 * @param topFourGrams
+	 *            the topFourGrams to set
+	 */
+	@Required
+	public void setTopFourGrams(Integer topFourGrams) {
+		this.topFourGrams = topFourGrams;
+	}
+
+	/**
+	 * @param topFiveGrams
+	 *            the topFiveGrams to set
+	 */
+	@Required
+	public void setTopFiveGrams(Integer topFiveGrams) {
+		this.topFiveGrams = topFiveGrams;
+	}
+
+	/**
+	 * @param taskExecutor
+	 *            the taskExecutor to set
+	 */
+	@Required
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
 	}
 }

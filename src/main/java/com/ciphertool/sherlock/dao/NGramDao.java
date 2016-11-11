@@ -69,10 +69,16 @@ public class NGramDao {
 	 * forever due to the limitation of Spring Data not providing cursor functionality.
 	 */
 	public List<NGram> findTopMostFrequentByNumWords(int numWordsQueryParam, int top) {
-		DBCollection collection = mongoOperations.getCollection(mongoOperations.getCollectionName(NGram.class));
+		DBCollection collection = mongoOperations.getCollection("nGram");
 
-		DBCursor cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam)).sort(new BasicDBObject(
-				"frequencyWeight", -1)).limit(top);
+		DBCursor cursor;
+
+		if (top > 0) {
+			cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam)).sort(new BasicDBObject(
+					"frequencyWeight", -1)).limit(top);
+		} else {
+			cursor = collection.find(new BasicDBObject("numWords", numWordsQueryParam));
+		}
 
 		List<NGram> results = new ArrayList<NGram>();
 		while (cursor.hasNext()) {
@@ -180,6 +186,10 @@ public class NGramDao {
 		return true;
 	}
 
+	/**
+	 * @param mongoOperations
+	 *            the mongoOperations to set
+	 */
 	@Required
 	public void setMongoTemplate(MongoOperations mongoOperations) {
 		this.mongoOperations = mongoOperations;

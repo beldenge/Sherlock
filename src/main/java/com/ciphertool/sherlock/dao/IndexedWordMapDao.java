@@ -28,7 +28,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ciphertool.sherlock.entities.Word;
 import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
@@ -48,14 +47,11 @@ public class IndexedWordMapDao implements WordMapDao {
 	private Map<Integer, int[]>						lengthFrequencyMap;
 
 	/**
-	 * Constructor with autowired dependencies.
-	 * 
 	 * @param wordDao
 	 *            the WordDao to use for populating the internal Maps
 	 * @param top
 	 *            the top number of words
 	 */
-	@Autowired
 	public IndexedWordMapDao(WordDao wordDao, Integer top) {
 		if (wordDao == null) {
 			throw new IllegalArgumentException("Error constructing IndexedWordMapDao.  WordDao cannot be null.");

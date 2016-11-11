@@ -28,7 +28,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ciphertool.sherlock.entities.Word;
 import com.ciphertool.sherlock.enumerations.PartOfSpeechType;
@@ -40,14 +39,11 @@ public class BasicWordMapDao implements WordMapDao {
 	private Map<Integer, ArrayList<Word>>			lengthWordMap		= new HashMap<Integer, ArrayList<Word>>();
 
 	/**
-	 * Constructor with autowired dependencies.
-	 * 
 	 * @param wordDao
 	 *            the WordDao to use for populating the internal Maps
 	 * @param top
 	 *            the top number of words
 	 */
-	@Autowired
 	public BasicWordMapDao(WordDao wordDao, Integer top) {
 		if (wordDao == null) {
 			throw new IllegalArgumentException("Error constructing BasicWordMapDao.  WordDao cannot be null.");
