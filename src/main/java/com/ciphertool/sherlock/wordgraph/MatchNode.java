@@ -59,9 +59,9 @@ public class MatchNode {
 			for (MatchNode child : this.children) {
 				child.walk(branches, branch + ", " + child.self.getWord());
 			}
+		} else {
+			branches.add(branch);
 		}
-
-		branches.add(branch);
 	}
 
 	@Override
