@@ -49,7 +49,6 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 	private static final String	OUTPUT_EXT	= ".txt";
 	private static final String	TAG_NAME	= "w";
 
-	private DocumentBuilder		docBuilder;
 	private String				corpusDirectory;
 	private String				outputDirectory;
 	private TaskExecutor		taskExecutor;
@@ -59,8 +58,6 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 		long start = System.currentTimeMillis();
 
 		log.info("Starting corpus transformation...");
-
-		docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 
 		List<FutureTask<Long>> futures = parseFiles(Paths.get(this.corpusDirectory));
 
@@ -102,13 +99,14 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 			StringBuilder sb = new StringBuilder();
 
 			try {
+				DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 				Document doc = docBuilder.parse(new File(this.path.toString()));
 				doc.getDocumentElement().normalize();
 
 				nList = doc.getElementsByTagName(TAG_NAME);
 
 				for (int temp = 0; temp < nList.getLength(); temp++) {
-					sb.append(nList.item(temp).getTextContent() + " ");
+					sb.append(nList.item(temp).getTextContent());
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);
@@ -116,8 +114,16 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 
 			String relativeFilename = this.path.subpath(Paths.get(corpusDirectory).getNameCount(), this.path.getNameCount()).toString();
 
-			Files.write(Paths.get(outputDirectory + relativeFilename.substring(0, relativeFilename.lastIndexOf(".") + 1)
-					+ OUTPUT_EXT), sb.toString().getBytes());
+			Path parentDir = Paths.get(outputDirectory + "/" + relativeFilename).getParent();
+
+			if (!Files.exists(parentDir)) {
+				Files.createDirectories(parentDir);
+			}
+
+			String oldFilename = this.path.getFileName().toString();
+			String newFilename = oldFilename.substring(0, oldFilename.lastIndexOf(".")) + OUTPUT_EXT;
+
+			Files.write(Paths.get(parentDir + "/" + newFilename), sb.toString().getBytes());
 
 			return (nList == null) ? 0L : (long) nList.getLength();
 		}
