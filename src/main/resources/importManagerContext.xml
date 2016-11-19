@@ -12,29 +12,22 @@ You should have received a copy of the GNU General Public License along with She
 -->
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:tx="http://www.springframework.org/schema/tx"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
        		http://www.springframework.org/schema/beans/spring-beans.xsd
        		http://www.springframework.org/schema/context
-       		http://www.springframework.org/schema/context/spring-context.xsd
-       		http://www.springframework.org/schema/tx 
-     		http://www.springframework.org/schema/tx/spring-tx.xsd">
+       		http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="classpath*:bootstrapContext.xml" />
-
-	<bean class="com.ciphertool.sherlock.dao.WordDao" id="wordDao">
+	<bean id="wordDao" class="com.ciphertool.sherlock.dao.WordDao">
 		<property name="mongoTemplate" ref="mongoTemplate" />
 	</bean>
 
-	<bean class="com.ciphertool.sherlock.dao.NGramDao" id="nGramDao">
+	<bean id="nGramDao" class="com.ciphertool.sherlock.dao.NGramDao">
 		<property name="mongoTemplate" ref="mongoTemplate" />
 	</bean>
 
-	<bean class="com.ciphertool.sherlock.etl.parsers.PartOfSpeechFileParser"
-		id="partOfSpeechfileParser" />
+	<bean id="partOfSpeechfileParser" class="com.ciphertool.sherlock.etl.parsers.PartOfSpeechFileParser" />
 
-	<bean class="com.ciphertool.sherlock.etl.importers.WordListImporterImpl"
-		id="wordListImporter">
+	<bean id="wordListImporter" class="com.ciphertool.sherlock.etl.importers.WordListImporterImpl">
 		<property name="wordDao" ref="wordDao" />
 		<property name="persistenceBatchSize" value="${persistence.batchSize}" />
 		<property name="concurrencyBatchSize" value="${concurrency.batchSize}" />
@@ -43,11 +36,9 @@ You should have received a copy of the GNU General Public License along with She
 		<property name="fileNames" value="${wordlist.file.locations}" />
 	</bean>
 
-	<bean class="com.ciphertool.sherlock.etl.parsers.FrequencyFileParser"
-		id="frequencyFileParser" />
+	<bean id="frequencyFileParser" class="com.ciphertool.sherlock.etl.parsers.FrequencyFileParser" />
 
-	<bean class="com.ciphertool.sherlock.etl.importers.FrequencyListImporterImpl"
-		id="frequencyListImporter">
+	<bean id="frequencyListImporter" class="com.ciphertool.sherlock.etl.importers.FrequencyListImporterImpl">
 		<property name="wordDao" ref="wordDao" />
 		<property name="persistenceBatchSize" value="${persistence.batchSize}" />
 		<property name="concurrencyBatchSize" value="${concurrency.batchSize}" />
@@ -56,11 +47,9 @@ You should have received a copy of the GNU General Public License along with She
 		<property name="fileNames" value="${frequency.file.locations}" />
 	</bean>
 
-	<bean class="com.ciphertool.sherlock.etl.parsers.NGramFileParser"
-		id="nGramFileParser" />
+	<bean id="nGramFileParser" class="com.ciphertool.sherlock.etl.parsers.NGramFileParser" />
 
-	<bean class="com.ciphertool.sherlock.etl.importers.NGramListImporterImpl"
-		id="nGramListImporter">
+	<bean id="nGramListImporter" class="com.ciphertool.sherlock.etl.importers.NGramListImporterImpl">
 		<property name="nGramDao" ref="nGramDao" />
 		<property name="persistenceBatchSize" value="${persistence.batchSize}" />
 		<property name="concurrencyBatchSize" value="${concurrency.batchSize}" />
@@ -72,8 +61,7 @@ You should have received a copy of the GNU General Public License along with She
 		<property name="fiveGramFileName" value="${nGram.five.file.location}" />
 	</bean>
 
-	<bean id="taskExecutor"
-		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+	<bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
 		<property name="corePoolSize" value="${taskExecutor.corePoolSize}" />
 		<property name="maxPoolSize" value="${taskExecutor.maxPoolSize}" />
 		<!-- queueCapacity should be the same as populationSize, or we will get 

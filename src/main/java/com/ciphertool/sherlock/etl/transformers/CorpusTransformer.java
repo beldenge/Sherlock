@@ -17,10 +17,10 @@
  * Sherlock. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.ciphertool.sherlock.etl.importers;
+package com.ciphertool.sherlock.etl.transformers;
 
-import com.ciphertool.sherlock.markov.MarkovModel;
+import javax.xml.parsers.ParserConfigurationException;
 
-public interface MarkovImporter {
-	public MarkovModel importCorpus();
+public interface CorpusTransformer {
+	public void transformCorpus() throws ParserConfigurationException;
 }

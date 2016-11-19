@@ -31,7 +31,7 @@ import com.ciphertool.sherlock.etl.importers.WordListImporter;
 import com.ciphertool.sherlock.etl.importers.WordListImporterImpl;
 
 public class WordImportManager {
-	private static Logger					log	= LoggerFactory.getLogger(WordListImporterImpl.class);
+	private static Logger					log	= LoggerFactory.getLogger(WordImportManager.class);
 
 	private static BeanFactory				beanFactory;
 	private static FrequencyListImporter	frequencyListImporter;
@@ -42,7 +42,7 @@ public class WordImportManager {
 	 * Bootstraps the Spring application context.
 	 */
 	private static void setUp() {
-		beanFactory = new ClassPathXmlApplicationContext("importManagerContext.xml");
+		beanFactory = new ClassPathXmlApplicationContext("bootstrapContext.xml");
 
 		log.info("Spring application context created successfully!");
 

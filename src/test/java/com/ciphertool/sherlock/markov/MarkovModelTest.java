@@ -60,7 +60,7 @@ public class MarkovModelTest {
 
 	// @Test
 	public void generate() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		String root = "happyh";
 		sb.append(root);
 

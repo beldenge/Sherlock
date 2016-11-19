@@ -17,8 +17,9 @@
  * Sherlock. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.ciphertool.sherlock.etl.importers;
+package com.ciphertool.sherlock.etl.transformers;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -29,36 +30,37 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.task.TaskExecutor;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
-import com.ciphertool.sherlock.markov.MarkovModel;
+public class XmlCorpusTransformer implements CorpusTransformer {
+	private static Logger		log			= LoggerFactory.getLogger(XmlCorpusTransformer.class);
 
-public class MarkovImporterImpl implements MarkovImporter {
-	private static Logger			log									= LoggerFactory.getLogger(MarkovImporterImpl.class);
+	private static final String	INPUT_EXT	= ".xml";
+	private static final String	OUTPUT_EXT	= ".txt";
+	private static final String	TAG_NAME	= "w";
 
-	private static final String		EXTENSION							= ".txt";
-	private static final String		NON_ALPHA							= ".*[^a-z].*";
-	private static final String		WHITESPACE_AND_INTER_SENTENCE_PUNC	= "[\\s-,;()`'\"]";
-	private static final Pattern	PATTERN								= Pattern.compile(NON_ALPHA);
-
-	private String					corpusDirectory;
-	private Integer					minCount;
-	private TaskExecutor			taskExecutor;
-	private MarkovModel				model;
+	private DocumentBuilder		docBuilder;
+	private String				corpusDirectory;
+	private String				outputDirectory;
+	private TaskExecutor		taskExecutor;
 
 	@Override
-	@PostConstruct
-	public MarkovModel importCorpus() {
+	public void transformCorpus() throws ParserConfigurationException {
 		long start = System.currentTimeMillis();
 
-		log.info("Starting corpus text import...");
+		log.info("Starting corpus transformation...");
+
+		docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 
 		List<FutureTask<Long>> futures = parseFiles(Paths.get(this.corpusDirectory));
 
@@ -68,62 +70,56 @@ public class MarkovImporterImpl implements MarkovImporter {
 			try {
 				total += future.get();
 			} catch (InterruptedException ie) {
-				log.error("Caught InterruptedException while waiting for ParseFileTask ", ie);
+				log.error("Caught InterruptedException while waiting for TransformFileTask ", ie);
 			} catch (ExecutionException ee) {
-				log.error("Caught ExecutionException while waiting for ParseFileTask ", ee);
+				log.error("Caught ExecutionException while waiting for TransformFileTask ", ee);
 			}
 		}
 
-		log.info("Imported " + total + " letter N-Grams in " + (System.currentTimeMillis() - start) + "ms");
-
-		this.model.postProcess(this.minCount);
-
-		return this.model;
+		log.info("Transformed " + total + " words in " + (System.currentTimeMillis() - start) + "ms");
 	}
 
 	/**
-	 * A concurrent task for parsing a file into a Markov model.
+	 * A concurrent task for transforming an XML file to a flat text file.
 	 */
-	protected class ParseFileTask implements Callable<Long> {
+	protected class TransformFileTask implements Callable<Long> {
 		private Path path;
 
 		/**
 		 * @param path
 		 *            the Path to set
 		 */
-		public ParseFileTask(Path path) {
+		public TransformFileTask(Path path) {
 			this.path = path;
 		}
 
 		@Override
 		public Long call() throws Exception {
-			log.debug("Importing file {}", this.path.toString());
+			log.debug("Transforming file {}", this.path.toString());
 
-			int order = model.getOrder();
-			long total = 0;
+			NodeList nList = null;
+
+			StringBuilder sb = new StringBuilder();
 
 			try {
-				String content = new String(Files.readAllBytes(this.path));
+				Document doc = docBuilder.parse(new File(this.path.toString()));
+				doc.getDocumentElement().normalize();
 
-				content = content.replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "").toLowerCase();
+				nList = doc.getElementsByTagName(TAG_NAME);
 
-				for (int i = 0; i < content.length() - order; i++) {
-					String kGramString = content.substring(i, i + order);
-
-					if (PATTERN.matcher(kGramString + content.charAt(i + order)).matches()) {
-						continue;
-					}
-
-					total++;
-					Character symbol = content.charAt(i + order);
-
-					model.addTransition(kGramString, symbol);
+				for (int temp = 0; temp < nList.getLength(); temp++) {
+					sb.append(nList.item(temp).getTextContent() + " ");
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);
 			}
 
-			return total;
+			String relativeFilename = this.path.subpath(Paths.get(corpusDirectory).getNameCount(), this.path.getNameCount()).toString();
+
+			Files.write(Paths.get(outputDirectory + relativeFilename.substring(0, relativeFilename.lastIndexOf(".") + 1)
+					+ OUTPUT_EXT), sb.toString().getBytes());
+
+			return (nList == null) ? 0L : (long) nList.getLength();
 		}
 	}
 
@@ -140,13 +136,13 @@ public class MarkovImporterImpl implements MarkovImporter {
 					filename = entry.toString();
 					String ext = filename.substring(filename.lastIndexOf('.'));
 
-					if (!ext.equals(EXTENSION)) {
+					if (!ext.equals(INPUT_EXT)) {
 						log.info("Skipping file with unexpected file extension: " + filename);
 
 						continue;
 					}
 
-					task = new FutureTask<Long>(new ParseFileTask(entry));
+					task = new FutureTask<Long>(new TransformFileTask(entry));
 					tasks.add(task);
 					this.taskExecutor.execute(task);
 				}
@@ -159,15 +155,6 @@ public class MarkovImporterImpl implements MarkovImporter {
 	}
 
 	/**
-	 * @param taskExecutor
-	 *            the taskExecutor to set
-	 */
-	@Required
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		this.taskExecutor = taskExecutor;
-	}
-
-	/**
 	 * @param fileName
 	 *            the fileName to set
 	 */
@@ -177,20 +164,20 @@ public class MarkovImporterImpl implements MarkovImporter {
 	}
 
 	/**
-	 * @param minCount
-	 *            the minCount to set
+	 * @param outputDirectory
+	 *            the outputDirectory to set
 	 */
 	@Required
-	public void setMinCount(Integer minCount) {
-		this.minCount = minCount;
+	public void setOutputDirectory(String outputDirectory) {
+		this.outputDirectory = outputDirectory;
 	}
 
 	/**
-	 * @param model
-	 *            the model to set
+	 * @param taskExecutor
+	 *            the taskExecutor to set
 	 */
 	@Required
-	public void setModel(MarkovModel model) {
-		this.model = model;
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
 	}
 }

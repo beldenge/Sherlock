@@ -302,7 +302,7 @@ public class MarkovModel {
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 
 		KGramIndexNode[] transitions = rootNode.getTransitions();
 
@@ -315,7 +315,7 @@ public class MarkovModel {
 		return sb.toString();
 	}
 
-	protected void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuffer sb) {
+	protected void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuilder sb) {
 		sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount());
 
 		KGramIndexNode[] transitions = node.getTransitions();
