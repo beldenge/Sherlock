@@ -103,6 +103,8 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 				Document doc = docBuilder.parse(new File(this.path.toString()));
 				doc.getDocumentElement().normalize();
 
+				// TODO: Preserve punctuation so we can avoid adding n-grams which span sentences
+				// TODO: filter out text that contains numbers or all caps
 				nList = doc.getElementsByTagName(TAG_NAME);
 
 				for (int temp = 0; temp < nList.getLength(); temp++) {
