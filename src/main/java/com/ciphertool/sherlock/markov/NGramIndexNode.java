@@ -1,6 +1,6 @@
 package com.ciphertool.sherlock.markov;
 
-public class KGramIndexNode {
+public class NGramIndexNode {
 	private static final int	MINIMUM_ASCII_VALUE	= 97;
 	private static final int	MAXIMUM_ASCII_VALUE	= 122;
 
@@ -8,13 +8,13 @@ public class KGramIndexNode {
 	private long				frequencyCount		= 0L;
 	private double				ratio				= 0.0;
 	private char				letter;
-	private KGramIndexNode[]	transitions			= new KGramIndexNode[26];
+	private NGramIndexNode[]	transitions			= new NGramIndexNode[26];
 
 	/**
 	 * @param level
 	 *            the level to set
 	 */
-	public KGramIndexNode(int level) {
+	public NGramIndexNode(int level) {
 		this.level = level;
 	}
 
@@ -22,19 +22,19 @@ public class KGramIndexNode {
 		return this.transitions[resolveIndex(c)] != null;
 	}
 
-	public KGramIndexNode getChild(char c) {
+	public NGramIndexNode getChild(char c) {
 		return this.transitions[resolveIndex(c)];
 	}
 
 	public synchronized void addOrIncrementChildAsync(Character firstLetter, int level) {
 		if (!this.containsChild(firstLetter)) {
-			this.putChild(firstLetter, new KGramIndexNode(level));
+			this.putChild(firstLetter, new NGramIndexNode(level));
 		}
 
 		this.getChild(firstLetter).increment();
 	}
 
-	public void putChild(char c, KGramIndexNode child) {
+	public void putChild(char c, NGramIndexNode child) {
 		if ((int) c < MINIMUM_ASCII_VALUE || (int) c > MAXIMUM_ASCII_VALUE) {
 			throw new IllegalArgumentException(
 					"Attempted to add a character to the Markov Model which is outside the range of ["
@@ -104,7 +104,7 @@ public class KGramIndexNode {
 	/**
 	 * @return the transitions array
 	 */
-	public KGramIndexNode[] getTransitions() {
+	public NGramIndexNode[] getTransitions() {
 		return transitions;
 	}
 }

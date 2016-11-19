@@ -107,17 +107,16 @@ public class MarkovImporterImpl implements MarkovImporter {
 
 				content = content.replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "").toLowerCase();
 
-				for (int i = 0; i < content.length() - order; i++) {
+				for (int i = 0; i <= content.length() - order; i++) {
 					String kGramString = content.substring(i, i + order);
 
-					if (PATTERN.matcher(kGramString + content.charAt(i + order)).matches()) {
+					if (PATTERN.matcher(kGramString).matches()) {
 						continue;
 					}
 
 					total++;
-					Character symbol = content.charAt(i + order);
 
-					model.addTransition(kGramString, symbol);
+					model.addTransition(kGramString);
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);

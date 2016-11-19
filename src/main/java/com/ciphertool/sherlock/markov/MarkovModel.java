@@ -38,7 +38,7 @@ public class MarkovModel {
 			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
 			'z' });
 
-	private KGramIndexNode					rootNode			= new KGramIndexNode(0);
+	private NGramIndexNode					rootNode			= new NGramIndexNode(0);
 	private boolean							postProcessed		= false;
 	private Integer							order;
 	private TaskExecutor					taskExecutor;
@@ -47,13 +47,13 @@ public class MarkovModel {
 	 * A concurrent task for normalizing a Markov model node.
 	 */
 	protected class NormalizeTask implements Callable<Void> {
-		private KGramIndexNode node;
+		private NGramIndexNode node;
 
 		/**
 		 * @param node
 		 *            the KGramIndexNode to set
 		 */
-		public NormalizeTask(KGramIndexNode node) {
+		public NormalizeTask(NGramIndexNode node) {
 			this.node = node;
 		}
 
@@ -69,13 +69,13 @@ public class MarkovModel {
 	 * A concurrent task for linking leaf nodes in a Markov model.
 	 */
 	protected class LinkChildTask implements Callable<Void> {
-		private KGramIndexNode node;
+		private NGramIndexNode node;
 
 		/**
 		 * @param node
 		 *            the KGramIndexNode to set
 		 */
-		public LinkChildTask(KGramIndexNode node) {
+		public LinkChildTask(NGramIndexNode node) {
 			this.node = node;
 		}
 
@@ -87,19 +87,19 @@ public class MarkovModel {
 		}
 	}
 
-	public void addTransition(String kGramString, Character symbol) {
+	public void addTransition(String kGramString) {
 		if (kGramString.length() != order) {
 			log.error("Expected k-gram of order " + order + ", but a k-gram of order " + kGramString.length()
 					+ " was found.  Unable to add transition.");
 		}
 
-		populateMap(rootNode, kGramString + symbol);
+		populateMap(rootNode, kGramString);
 	}
 
-	protected void populateMap(KGramIndexNode currentNode, String kGramString) {
+	protected void populateMap(NGramIndexNode currentNode, String kGramString) {
 		Character firstLetter = kGramString.charAt(0);
 
-		currentNode.addOrIncrementChildAsync(firstLetter, order - (kGramString.length() - 2));
+		currentNode.addOrIncrementChildAsync(firstLetter, order - (kGramString.length() - 1));
 
 		if (kGramString.length() > 1) {
 			populateMap(currentNode.getChild(firstLetter), kGramString.substring(1));
@@ -115,13 +115,13 @@ public class MarkovModel {
 
 		log.info("Starting Markov model post-processing...");
 
-		KGramIndexNode[] initialTransitions = this.rootNode.getTransitions();
+		NGramIndexNode[] initialTransitions = this.rootNode.getTransitions();
 
 		List<FutureTask<Void>> futures = new ArrayList<FutureTask<Void>>(26);
 		FutureTask<Void> task;
 
 		for (int i = 0; i < initialTransitions.length; i++) {
-			KGramIndexNode node = initialTransitions[i];
+			NGramIndexNode node = initialTransitions[i];
 
 			if (node != null) {
 				task = new FutureTask<Void>(new NormalizeTask(node));
@@ -147,7 +147,7 @@ public class MarkovModel {
 		futures = new ArrayList<FutureTask<Void>>(26);
 
 		for (int i = 0; i < initialTransitions.length; i++) {
-			KGramIndexNode node = initialTransitions[i];
+			NGramIndexNode node = initialTransitions[i];
 
 			if (node != null) {
 				task = new FutureTask<Void>(new LinkChildTask(node));
@@ -171,8 +171,8 @@ public class MarkovModel {
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 	}
 
-	protected void removeOutliers(KGramIndexNode node, int minCount) {
-		KGramIndexNode[] transitions = node.getTransitions();
+	protected void removeOutliers(NGramIndexNode node, int minCount) {
+		NGramIndexNode[] transitions = node.getTransitions();
 
 		for (int i = 0; i < transitions.length; i++) {
 			if (transitions[i] == null) {
@@ -189,8 +189,8 @@ public class MarkovModel {
 		}
 	}
 
-	protected void normalize(KGramIndexNode node) {
-		KGramIndexNode[] transitions = node.getTransitions();
+	protected void normalize(NGramIndexNode node) {
+		NGramIndexNode[] transitions = node.getTransitions();
 
 		if (transitions == null || transitions.length == 0) {
 			return;
@@ -198,7 +198,7 @@ public class MarkovModel {
 
 		Long total = 0L;
 		for (int i = 0; i < transitions.length; i++) {
-			KGramIndexNode child = transitions[i];
+			NGramIndexNode child = transitions[i];
 
 			if (child != null) {
 				total += child.getCount();
@@ -206,7 +206,7 @@ public class MarkovModel {
 		}
 
 		for (int i = 0; i < transitions.length; i++) {
-			KGramIndexNode child = transitions[i];
+			NGramIndexNode child = transitions[i];
 
 			if (child != null) {
 				child.setRatio((double) child.getCount() / (double) total);
@@ -216,12 +216,12 @@ public class MarkovModel {
 		}
 	}
 
-	protected void linkChild(KGramIndexNode node, String kGram) {
-		KGramIndexNode[] transitions = node.getTransitions();
+	protected void linkChild(NGramIndexNode node, String kGram) {
+		NGramIndexNode[] transitions = node.getTransitions();
 
 		if (kGram.length() > order) {
 			for (Character letter : LOWERCASE_LETTERS) {
-				KGramIndexNode match = this.find(kGram.substring(1) + letter.toString());
+				NGramIndexNode match = this.find(kGram.substring(1) + letter.toString());
 
 				if (match != null) {
 					node.putChild(letter, match);
@@ -232,7 +232,7 @@ public class MarkovModel {
 		}
 
 		for (int i = 0; i < transitions.length; i++) {
-			KGramIndexNode nextNode = transitions[i];
+			NGramIndexNode nextNode = transitions[i];
 
 			if (nextNode != null) {
 				linkChild(nextNode, kGram + String.valueOf(nextNode.getLetter()));
@@ -245,12 +245,12 @@ public class MarkovModel {
 	 *            the K-gram String to search by
 	 * @return the matching KGramIndexNode
 	 */
-	public KGramIndexNode find(String kGram) {
+	public NGramIndexNode find(String kGram) {
 		return findMatch(rootNode, kGram);
 	}
 
-	protected static KGramIndexNode findMatch(KGramIndexNode node, String kGramString) {
-		KGramIndexNode nextNode = node.getChild(kGramString.charAt(0));
+	protected static NGramIndexNode findMatch(NGramIndexNode node, String kGramString) {
+		NGramIndexNode nextNode = node.getChild(kGramString.charAt(0));
 
 		if (nextNode == null) {
 			return null;
@@ -268,12 +268,12 @@ public class MarkovModel {
 	 *            the K-gram String to search by
 	 * @return the longest matching KGramIndexNode
 	 */
-	public KGramIndexNode findLongest(String kGram) {
+	public NGramIndexNode findLongest(String kGram) {
 		return findLongestMatch(rootNode, kGram);
 	}
 
-	protected static KGramIndexNode findLongestMatch(KGramIndexNode node, String kGramString) {
-		KGramIndexNode nextNode = node.getChild(kGramString.charAt(0));
+	protected static NGramIndexNode findLongestMatch(NGramIndexNode node, String kGramString) {
+		NGramIndexNode nextNode = node.getChild(kGramString.charAt(0));
 
 		if (nextNode == null) {
 			return node;
@@ -289,7 +289,7 @@ public class MarkovModel {
 	/**
 	 * @return the rootNode
 	 */
-	public KGramIndexNode getRootNode() {
+	public NGramIndexNode getRootNode() {
 		return rootNode;
 	}
 
@@ -304,7 +304,7 @@ public class MarkovModel {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		KGramIndexNode[] transitions = rootNode.getTransitions();
+		NGramIndexNode[] transitions = rootNode.getTransitions();
 
 		for (int i = 0; i < transitions.length; i++) {
 			if (transitions[i] != null) {
@@ -315,10 +315,10 @@ public class MarkovModel {
 		return sb.toString();
 	}
 
-	protected void appendTransitions(String parent, Character symbol, KGramIndexNode node, StringBuilder sb) {
+	protected void appendTransitions(String parent, Character symbol, NGramIndexNode node, StringBuilder sb) {
 		sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount());
 
-		KGramIndexNode[] transitions = node.getTransitions();
+		NGramIndexNode[] transitions = node.getTransitions();
 
 		if (transitions == null || transitions.length == 0) {
 			return;

@@ -65,9 +65,9 @@ public class MarkovModelTest {
 		sb.append(root);
 
 		for (int i = 0; i < 100; i++) {
-			KGramIndexNode match = model.find(root);
+			NGramIndexNode match = model.find(root);
 
-			KGramIndexNode[] transitions = null;
+			NGramIndexNode[] transitions = null;
 
 			if (match != null) {
 				transitions = match.getTransitions();
@@ -86,7 +86,7 @@ public class MarkovModelTest {
 				}
 			}
 
-			KGramIndexNode[] tempArray = new KGramIndexNode[count];
+			NGramIndexNode[] tempArray = new NGramIndexNode[count];
 
 			count = 0;
 			for (int j = 0; j < transitions.length; j++) {
