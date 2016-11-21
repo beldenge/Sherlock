@@ -40,8 +40,8 @@ import org.springframework.core.task.TaskExecutor;
 
 import com.ciphertool.sherlock.markov.MarkovModel;
 
-public class MarkovImporterImpl implements MarkovImporter {
-	private static Logger			log									= LoggerFactory.getLogger(MarkovImporterImpl.class);
+public class WordNGramMarkovImporter implements MarkovImporter {
+	private static Logger			log									= LoggerFactory.getLogger(WordNGramMarkovImporter.class);
 
 	private static final String		EXTENSION							= ".txt";
 	private static final String		NON_ALPHA							= ".*[^a-z].*";

@@ -2,19 +2,21 @@ package com.ciphertool.sherlock.markov;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
-public class NGramIndexNode<T> {
-	private int							level		= 0;
-	private long						count		= 0L;
-	private double						ratio		= 0.0;
-	private boolean						isTerminal;
-	private Map<T, NGramIndexNode<T>>	transitions	= new HashMap<T, NGramIndexNode<T>>();
+public class LetterNGramIndexNode {
+	private static final Pattern					LOWERCASE_LETTERS	= Pattern.compile("[a-z]");
+	private int										level				= 0;
+	private long									count				= 0L;
+	private double									ratio				= 0.0;
+	private boolean									isTerminal;
+	private Map<Character, LetterNGramIndexNode>	transitions			= new HashMap<Character, LetterNGramIndexNode>();
 
 	/**
 	 * @param isTerminal
 	 *            whether this is a terminal node
 	 */
-	public NGramIndexNode(boolean isTerminal) {
+	public LetterNGramIndexNode(boolean isTerminal) {
 		this.isTerminal = isTerminal;
 	}
 
@@ -24,29 +26,35 @@ public class NGramIndexNode<T> {
 	 * @param level
 	 *            the level to set
 	 */
-	public NGramIndexNode(boolean isTerminal, int level) {
+	public LetterNGramIndexNode(boolean isTerminal, int level) {
 		this.isTerminal = isTerminal;
 		this.level = level;
 	}
 
-	public boolean containsChild(T state) {
-		return this.transitions.containsKey(state);
+	public boolean containsChild(Character c) {
+		return this.transitions.containsKey(c);
 	}
 
-	public NGramIndexNode<T> getChild(T state) {
-		return this.transitions.get(state);
+	public LetterNGramIndexNode getChild(Character c) {
+		return this.transitions.get(c);
 	}
 
-	public synchronized void addOrIncrementChildAsync(T firstState, int level) {
-		if (!this.containsChild(firstState)) {
-			this.putChild(firstState, new NGramIndexNode<T>(true, level));
+	public synchronized void addOrIncrementChildAsync(Character firstLetter, int level) {
+		if (!this.containsChild(firstLetter)) {
+			this.putChild(firstLetter, new LetterNGramIndexNode(true, level));
 		}
 
-		this.getChild(firstState).increment();
+		this.getChild(firstLetter).increment();
 	}
 
-	public void putChild(T state, NGramIndexNode<T> child) {
-		this.transitions.put(state, child);
+	public void putChild(Character c, LetterNGramIndexNode child) {
+		if (!LOWERCASE_LETTERS.matcher(c.toString()).matches()) {
+			throw new IllegalArgumentException(
+					"Attempted to add a character to the Markov Model which is outside the range of "
+							+ LOWERCASE_LETTERS);
+		}
+
+		this.transitions.put(c, child);
 	}
 
 	public void increment() {
@@ -88,7 +96,7 @@ public class NGramIndexNode<T> {
 	/**
 	 * @return the transitions array
 	 */
-	public Map<T, NGramIndexNode<T>> getTransitions() {
+	public Map<Character, LetterNGramIndexNode> getTransitions() {
 		return this.transitions;
 	}
 

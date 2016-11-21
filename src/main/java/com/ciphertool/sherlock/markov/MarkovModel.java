@@ -22,6 +22,7 @@ package com.ciphertool.sherlock.markov;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -38,7 +39,7 @@ public class MarkovModel {
 			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
 			'z' });
 
-	private NGramIndexNode					rootNode			= new NGramIndexNode(0);
+	private LetterNGramIndexNode			rootNode			= new LetterNGramIndexNode(true, 0);
 	private boolean							postProcessed		= false;
 	private Integer							order;
 	private TaskExecutor					taskExecutor;
@@ -47,13 +48,13 @@ public class MarkovModel {
 	 * A concurrent task for normalizing a Markov model node.
 	 */
 	protected class NormalizeTask implements Callable<Void> {
-		private NGramIndexNode node;
+		private LetterNGramIndexNode node;
 
 		/**
 		 * @param node
-		 *            the KGramIndexNode to set
+		 *            the LetterNGramIndexNode to set
 		 */
-		public NormalizeTask(NGramIndexNode node) {
+		public NormalizeTask(LetterNGramIndexNode node) {
 			this.node = node;
 		}
 
@@ -69,40 +70,44 @@ public class MarkovModel {
 	 * A concurrent task for linking leaf nodes in a Markov model.
 	 */
 	protected class LinkChildTask implements Callable<Void> {
-		private NGramIndexNode node;
+		private Character				key;
+		private LetterNGramIndexNode	node;
 
 		/**
+		 * @param key
+		 *            the Character key to set
 		 * @param node
-		 *            the KGramIndexNode to set
+		 *            the LetterNGramIndexNode to set
 		 */
-		public LinkChildTask(NGramIndexNode node) {
+		public LinkChildTask(Character key, LetterNGramIndexNode node) {
+			this.key = key;
 			this.node = node;
 		}
 
 		@Override
 		public Void call() throws Exception {
-			linkChild(this.node, String.valueOf(this.node.getLetter()));
+			linkChild(this.node, String.valueOf(this.key));
 
 			return null;
 		}
 	}
 
-	public void addTransition(String kGramString) {
-		if (kGramString.length() != order) {
-			log.error("Expected k-gram of order " + order + ", but a k-gram of order " + kGramString.length()
+	public void addTransition(String nGramString) {
+		if (nGramString.length() != order) {
+			log.error("Expected k-gram of order " + order + ", but a k-gram of order " + nGramString.length()
 					+ " was found.  Unable to add transition.");
 		}
 
-		populateMap(rootNode, kGramString);
+		populateMap(rootNode, nGramString);
 	}
 
-	protected void populateMap(NGramIndexNode currentNode, String kGramString) {
-		Character firstLetter = kGramString.charAt(0);
+	protected void populateMap(LetterNGramIndexNode currentNode, String nGramString) {
+		Character firstLetter = nGramString.charAt(0);
 
-		currentNode.addOrIncrementChildAsync(firstLetter, order - (kGramString.length() - 1));
+		currentNode.addOrIncrementChildAsync(firstLetter, order - (nGramString.length() - 1));
 
-		if (kGramString.length() > 1) {
-			populateMap(currentNode.getChild(firstLetter), kGramString.substring(1));
+		if (nGramString.length() > 1) {
+			populateMap(currentNode.getChild(firstLetter), nGramString.substring(1));
 		}
 	}
 
@@ -115,16 +120,14 @@ public class MarkovModel {
 
 		log.info("Starting Markov model post-processing...");
 
-		NGramIndexNode[] initialTransitions = this.rootNode.getTransitions();
+		Map<Character, LetterNGramIndexNode> initialTransitions = this.rootNode.getTransitions();
 
 		List<FutureTask<Void>> futures = new ArrayList<FutureTask<Void>>(26);
 		FutureTask<Void> task;
 
-		for (int i = 0; i < initialTransitions.length; i++) {
-			NGramIndexNode node = initialTransitions[i];
-
-			if (node != null) {
-				task = new FutureTask<Void>(new NormalizeTask(node));
+		for (Map.Entry<Character, LetterNGramIndexNode> entry : initialTransitions.entrySet()) {
+			if (entry.getValue() != null) {
+				task = new FutureTask<Void>(new NormalizeTask(entry.getValue()));
 				futures.add(task);
 				this.taskExecutor.execute(task);
 			}
@@ -146,11 +149,9 @@ public class MarkovModel {
 
 		futures = new ArrayList<FutureTask<Void>>(26);
 
-		for (int i = 0; i < initialTransitions.length; i++) {
-			NGramIndexNode node = initialTransitions[i];
-
-			if (node != null) {
-				task = new FutureTask<Void>(new LinkChildTask(node));
+		for (Map.Entry<Character, LetterNGramIndexNode> entry : initialTransitions.entrySet()) {
+			if (entry.getValue() != null) {
+				task = new FutureTask<Void>(new LinkChildTask(entry.getKey(), entry.getValue()));
 				futures.add(task);
 				this.taskExecutor.execute(task);
 			}
@@ -171,42 +172,46 @@ public class MarkovModel {
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
 	}
 
-	protected void removeOutliers(NGramIndexNode node, int minCount) {
-		NGramIndexNode[] transitions = node.getTransitions();
+	protected void removeOutliers(LetterNGramIndexNode node, int minCount) {
+		Map<Character, LetterNGramIndexNode> transitions = node.getTransitions();
 
-		for (int i = 0; i < transitions.length; i++) {
-			if (transitions[i] == null) {
+		List<Character> keysToRemove = new ArrayList<Character>();
+
+		for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+			if (entry.getValue() == null) {
 				continue;
 			}
 
-			if (transitions[i].getCount() < minCount) {
-				transitions[i] = null;
+			if (entry.getValue().getCount() < minCount) {
+				keysToRemove.add(entry.getKey());
 
 				continue;
 			}
 
-			removeOutliers(transitions[i], minCount);
+			removeOutliers(entry.getValue(), minCount);
+		}
+
+		for (Character key : keysToRemove) {
+			transitions.remove(key);
 		}
 	}
 
-	protected void normalize(NGramIndexNode node) {
-		NGramIndexNode[] transitions = node.getTransitions();
+	protected void normalize(LetterNGramIndexNode node) {
+		Map<Character, LetterNGramIndexNode> transitions = node.getTransitions();
 
-		if (transitions == null || transitions.length == 0) {
+		if (transitions == null || transitions.isEmpty()) {
 			return;
 		}
 
 		Long total = 0L;
-		for (int i = 0; i < transitions.length; i++) {
-			NGramIndexNode child = transitions[i];
-
-			if (child != null) {
-				total += child.getCount();
+		for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+			if (entry.getValue() != null) {
+				total += entry.getValue().getCount();
 			}
 		}
 
-		for (int i = 0; i < transitions.length; i++) {
-			NGramIndexNode child = transitions[i];
+		for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+			LetterNGramIndexNode child = entry.getValue();
 
 			if (child != null) {
 				child.setRatio((double) child.getCount() / (double) total);
@@ -216,12 +221,12 @@ public class MarkovModel {
 		}
 	}
 
-	protected void linkChild(NGramIndexNode node, String kGram) {
-		NGramIndexNode[] transitions = node.getTransitions();
+	protected void linkChild(LetterNGramIndexNode node, String nGram) {
+		Map<Character, LetterNGramIndexNode> transitions = node.getTransitions();
 
-		if (kGram.length() > order) {
+		if (nGram.length() > order) {
 			for (Character letter : LOWERCASE_LETTERS) {
-				NGramIndexNode match = this.find(kGram.substring(1) + letter.toString());
+				LetterNGramIndexNode match = this.find(nGram.substring(1) + letter.toString());
 
 				if (match != null) {
 					node.putChild(letter, match);
@@ -231,65 +236,65 @@ public class MarkovModel {
 			return;
 		}
 
-		for (int i = 0; i < transitions.length; i++) {
-			NGramIndexNode nextNode = transitions[i];
+		for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+			LetterNGramIndexNode nextNode = entry.getValue();
 
 			if (nextNode != null) {
-				linkChild(nextNode, kGram + String.valueOf(nextNode.getLetter()));
+				linkChild(nextNode, nGram + String.valueOf(entry.getKey()));
 			}
 		}
 	}
 
 	/**
-	 * @param kGram
+	 * @param nGram
 	 *            the K-gram String to search by
-	 * @return the matching KGramIndexNode
+	 * @return the matching LetterNGramIndexNode
 	 */
-	public NGramIndexNode find(String kGram) {
-		return findMatch(rootNode, kGram);
+	public LetterNGramIndexNode find(String nGram) {
+		return findMatch(rootNode, nGram);
 	}
 
-	protected static NGramIndexNode findMatch(NGramIndexNode node, String kGramString) {
-		NGramIndexNode nextNode = node.getChild(kGramString.charAt(0));
+	protected static LetterNGramIndexNode findMatch(LetterNGramIndexNode node, String nGramString) {
+		LetterNGramIndexNode nextNode = node.getChild(nGramString.charAt(0));
 
 		if (nextNode == null) {
 			return null;
 		}
 
-		if (kGramString.length() == 1) {
+		if (nGramString.length() == 1) {
 			return nextNode;
 		}
 
-		return findMatch(nextNode, kGramString.substring(1));
+		return findMatch(nextNode, nGramString.substring(1));
 	}
 
 	/**
-	 * @param kGram
+	 * @param nGram
 	 *            the K-gram String to search by
-	 * @return the longest matching KGramIndexNode
+	 * @return the longest matching LetterNGramIndexNode
 	 */
-	public NGramIndexNode findLongest(String kGram) {
-		return findLongestMatch(rootNode, kGram);
+	public LetterNGramIndexNode findLongest(String nGram) {
+		return findLongestMatch(rootNode, nGram);
 	}
 
-	protected static NGramIndexNode findLongestMatch(NGramIndexNode node, String kGramString) {
-		NGramIndexNode nextNode = node.getChild(kGramString.charAt(0));
+	protected static LetterNGramIndexNode findLongestMatch(LetterNGramIndexNode node, String nGramString) {
+		LetterNGramIndexNode nextNode = node.getChild(nGramString.charAt(0));
 
 		if (nextNode == null) {
 			return node;
 		}
 
-		if (kGramString.length() == 1) {
+		if (nGramString.length() == 1) {
 			return nextNode;
 		}
 
-		return findLongestMatch(nextNode, kGramString.substring(1));
+		return findLongestMatch(nextNode, nGramString.substring(1));
 	}
 
 	/**
 	 * @return the rootNode
 	 */
-	public NGramIndexNode getRootNode() {
+	public LetterNGramIndexNode getRootNode() {
 		return rootNode;
 	}
 
@@ -304,29 +309,29 @@ public class MarkovModel {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		NGramIndexNode[] transitions = rootNode.getTransitions();
+		Map<Character, LetterNGramIndexNode> transitions = rootNode.getTransitions();
 
-		for (int i = 0; i < transitions.length; i++) {
-			if (transitions[i] != null) {
-				appendTransitions("", transitions[i].getLetter(), transitions[i], sb);
+		for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+			if (entry.getValue() != null) {
+				appendTransitions("", entry.getKey(), entry.getValue(), sb);
 			}
 		}
 
 		return sb.toString();
 	}
 
-	protected void appendTransitions(String parent, Character symbol, NGramIndexNode node, StringBuilder sb) {
+	protected void appendTransitions(String parent, Character symbol, LetterNGramIndexNode node, StringBuilder sb) {
 		sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount());
 
-		NGramIndexNode[] transitions = node.getTransitions();
+		Map<Character, LetterNGramIndexNode> transitions = node.getTransitions();
 
-		if (transitions == null || transitions.length == 0) {
+		if (transitions == null || transitions.isEmpty()) {
 			return;
 		}
 
-		for (int i = 0; i < transitions.length; i++) {
-			if (transitions[i] != null) {
-				appendTransitions(parent + transitions[i].getLetter(), transitions[i].getLetter(), transitions[i], sb);
+		for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+			if (entry.getValue() != null) {
+				appendTransitions(parent + entry.getKey(), entry.getKey(), entry.getValue(), sb);
 			}
 		}
 	}

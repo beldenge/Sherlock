@@ -21,20 +21,21 @@ package com.ciphertool.sherlock.markov;
 
 import static org.mockito.Mockito.spy;
 
+import java.util.Map;
 import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import com.ciphertool.sherlock.etl.importers.MarkovImporterImpl;
+import com.ciphertool.sherlock.etl.importers.LetterNGramMarkovImporter;
 
 public class MarkovModelTest {
-	private Logger						log		= LoggerFactory.getLogger(getClass());
-	private static final int			ORDER	= 6;
+	private Logger								log		= LoggerFactory.getLogger(getClass());
+	private static final int					ORDER	= 6;
 
-	private static MarkovImporterImpl	importer;
-	private static MarkovModel			model;
+	private static LetterNGramMarkovImporter	importer;
+	private static MarkovModel					model;
 
 	// @BeforeClass
 	public static void setUp() {
@@ -50,7 +51,7 @@ public class MarkovModelTest {
 		model.setOrder(ORDER);
 		model.setTaskExecutor(taskExecutorSpy);
 
-		importer = new MarkovImporterImpl();
+		importer = new LetterNGramMarkovImporter();
 		importer.setModel(model);
 		importer.setCorpusDirectory("../Sherlock/src/main/data/corpus");
 		importer.setMinCount(1);
@@ -65,33 +66,33 @@ public class MarkovModelTest {
 		sb.append(root);
 
 		for (int i = 0; i < 100; i++) {
-			NGramIndexNode match = model.find(root);
+			LetterNGramIndexNode match = model.find(root);
 
-			NGramIndexNode[] transitions = null;
+			Map<Character, LetterNGramIndexNode> transitions = null;
 
 			if (match != null) {
 				transitions = match.getTransitions();
 			}
 
-			if (transitions == null || transitions.length == 0) {
+			if (transitions == null || transitions.isEmpty()) {
 				log.info("Could not find transition for root: " + root);
 
 				break;
 			}
 
 			int count = 0;
-			for (int j = 0; j < transitions.length; j++) {
-				if (transitions[j] != null) {
+			for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+				if (entry.getValue() != null) {
 					count++;
 				}
 			}
 
-			NGramIndexNode[] tempArray = new NGramIndexNode[count];
+			char[] tempArray = new char[count];
 
 			count = 0;
-			for (int j = 0; j < transitions.length; j++) {
-				if (transitions[j] != null) {
-					tempArray[count] = transitions[j];
+			for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+				if (entry.getValue() != null) {
+					tempArray[count] = entry.getKey();
 
 					count++;
 				}
@@ -100,7 +101,7 @@ public class MarkovModelTest {
 			Random rand = new Random();
 			int randomIndex = rand.nextInt(tempArray.length);
 
-			char nextSymbol = tempArray[randomIndex].getLetter();
+			char nextSymbol = tempArray[randomIndex];
 			sb.append(nextSymbol);
 
 			root = root.substring(1) + nextSymbol;
