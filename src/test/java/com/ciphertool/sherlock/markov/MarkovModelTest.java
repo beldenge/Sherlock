@@ -52,7 +52,7 @@ public class MarkovModelTest {
 		model.setTaskExecutor(taskExecutorSpy);
 
 		importer = new LetterNGramMarkovImporter();
-		importer.setModel(model);
+		importer.setLetterMarkovModel(model);
 		importer.setCorpusDirectory("../Sherlock/src/main/data/corpus");
 		importer.setMinCount(1);
 		importer.setTaskExecutor(taskExecutorSpy);

@@ -52,7 +52,7 @@ public class MarkovModel {
 
 		/**
 		 * @param node
-		 *            the LetterNGramIndexNode to set
+		 *            the NGramIndexNode to set
 		 */
 		public NormalizeTask(NGramIndexNode node) {
 			this.node = node;
@@ -77,7 +77,7 @@ public class MarkovModel {
 		 * @param key
 		 *            the Character key to set
 		 * @param node
-		 *            the LetterNGramIndexNode to set
+		 *            the NGramIndexNode to set
 		 */
 		public LinkChildTask(Character key, NGramIndexNode node) {
 			this.key = key;
@@ -247,8 +247,8 @@ public class MarkovModel {
 
 	/**
 	 * @param nGram
-	 *            the K-gram String to search by
-	 * @return the matching LetterNGramIndexNode
+	 *            the N-gram String to search by
+	 * @return the matching NGramIndexNode
 	 */
 	public NGramIndexNode find(String nGram) {
 		return findMatch(rootNode, nGram);
@@ -270,8 +270,8 @@ public class MarkovModel {
 
 	/**
 	 * @param nGram
-	 *            the K-gram String to search by
-	 * @return the longest matching LetterNGramIndexNode
+	 *            the N-Gram String to search by
+	 * @return the longest matching NGramIndexNode
 	 */
 	public NGramIndexNode findLongest(String nGram) {
 		return findLongestMatch(rootNode, nGram);
@@ -289,6 +289,31 @@ public class MarkovModel {
 		}
 
 		return findLongestMatch(nextNode, nGramString.substring(1));
+	}
+
+	/**
+	 * @param nGram
+	 *            the N-gram String to search by
+	 * @return the longest matching String
+	 */
+	public String findLongestAsString(String nGram) {
+		return findLongestMatchAsString(rootNode, nGram, "");
+	}
+
+	protected static String findLongestMatchAsString(NGramIndexNode node, String nGramString, String longestMatch) {
+		NGramIndexNode nextNode = node.getChild(nGramString.charAt(0));
+
+		if (nextNode == null) {
+			return longestMatch;
+		}
+
+		if (nGramString.length() == 1) {
+			return longestMatch;
+		}
+
+		longestMatch = longestMatch + nGramString.charAt(0);
+
+		return findLongestMatchAsString(nextNode, nGramString.substring(1), longestMatch);
 	}
 
 	/**

@@ -49,7 +49,7 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 	private String				corpusDirectory;
 	private Integer				minCount;
 	private TaskExecutor		taskExecutor;
-	private MarkovModel			model;
+	private MarkovModel			wordkMarkovModel;
 
 	@Override
 	@PostConstruct
@@ -74,9 +74,9 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 
 		log.info("Imported " + total + " word N-Grams in " + (System.currentTimeMillis() - start) + "ms");
 
-		this.model.postProcess(this.minCount, false, false);
+		this.wordkMarkovModel.postProcess(this.minCount, false, false);
 
-		return this.model;
+		return this.wordkMarkovModel;
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 		public Long call() throws Exception {
 			log.debug("Importing file {}", this.path.toString());
 
-			int order = model.getOrder();
+			int order = wordkMarkovModel.getOrder();
 			long total = 0;
 			StringBuilder concatenated;
 
@@ -117,7 +117,7 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 						}
 
 						if (concatenated.length() != 0) {
-							model.addTransition(concatenated.toString(), false);
+							wordkMarkovModel.addTransition(concatenated.toString(), false);
 						}
 					}
 
@@ -190,11 +190,11 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 	}
 
 	/**
-	 * @param model
-	 *            the model to set
+	 * @param wordkMarkovModel
+	 *            the wordkMarkovModel to set
 	 */
 	@Required
-	public void setModel(MarkovModel model) {
-		this.model = model;
+	public void setWordMarkovModel(MarkovModel wordkMarkovModel) {
+		this.wordkMarkovModel = wordkMarkovModel;
 	}
 }
