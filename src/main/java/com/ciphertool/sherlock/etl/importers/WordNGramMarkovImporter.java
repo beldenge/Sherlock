@@ -109,14 +109,17 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 				String[] words = content.split(WHITESPACE);
 
 				for (int i = 0; i < words.length; i++) {
-					concatenated = new StringBuilder();
+					for (int j = 1; j <= order; j++) {
+						concatenated = new StringBuilder();
 
-					// TODO: must add lower-order n-grams as well, such that the isTerminal flag is set appropriately
-					for (int j = 0; j < Math.min(order, words.length - i); j++) {
-						concatenated.append(words[i + j]);
+						for (int k = 0; k < Math.min(j, words.length - i); k++) {
+							concatenated.append(words[i + k]);
+						}
+
+						if (concatenated.length() != 0) {
+							model.addTransition(concatenated.toString(), false);
+						}
 					}
-
-					model.addTransition(concatenated.toString());
 
 					total++;
 				}

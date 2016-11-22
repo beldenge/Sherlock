@@ -92,18 +92,18 @@ public class MarkovModel {
 		}
 	}
 
-	public void addTransition(String nGramString) {
-		populateMap(rootNode, nGramString);
+	public void addTransition(String nGramString, boolean alwaysTerminal) {
+		populateMap(rootNode, nGramString, alwaysTerminal);
 	}
 
-	protected void populateMap(NGramIndexNode currentNode, String nGramString) {
+	protected void populateMap(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal) {
 		Character firstLetter = nGramString.charAt(0);
 
-		currentNode.addOrIncrementChildAsync(firstLetter, order - (nGramString.length()
-				- 1), nGramString.length() == 1);
+		currentNode.addOrIncrementChildAsync(firstLetter, order - (nGramString.length() - 1), alwaysTerminal
+				|| nGramString.length() == 1);
 
 		if (nGramString.length() > 1) {
-			populateMap(currentNode.getChild(firstLetter), nGramString.substring(1));
+			populateMap(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal);
 		}
 	}
 

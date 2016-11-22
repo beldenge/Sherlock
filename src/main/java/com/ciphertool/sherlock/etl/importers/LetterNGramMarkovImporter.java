@@ -116,7 +116,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 					total++;
 
-					model.addTransition(kGramString);
+					model.addTransition(kGramString, true);
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);

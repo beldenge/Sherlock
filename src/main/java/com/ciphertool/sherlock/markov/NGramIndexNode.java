@@ -67,7 +67,9 @@ public class NGramIndexNode {
 			child = this.getChild(firstLetter);
 		}
 
-		child.increment();
+		if (isTerminal) {
+			child.increment();
+		}
 	}
 
 	public void putChild(Character c, NGramIndexNode child) {
