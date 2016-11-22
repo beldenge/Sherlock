@@ -108,15 +108,15 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 				content = content.toLowerCase().replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "");
 
 				for (int i = 0; i < content.length(); i++) {
-					String kGramString = content.substring(i, i + Math.min(order, content.length() - i));
+					String nGramString = content.substring(i, i + Math.min(order, content.length() - i));
 
-					if (PATTERN.matcher(kGramString).matches()) {
+					if (PATTERN.matcher(nGramString).matches()) {
 						continue;
 					}
 
 					total++;
 
-					letterMarkovModel.addTransition(kGramString, true);
+					letterMarkovModel.addTransition(nGramString, true);
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);
