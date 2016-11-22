@@ -66,9 +66,9 @@ public class MarkovModelTest {
 		sb.append(root);
 
 		for (int i = 0; i < 100; i++) {
-			LetterNGramIndexNode match = model.find(root);
+			NGramIndexNode match = model.find(root);
 
-			Map<Character, LetterNGramIndexNode> transitions = null;
+			Map<Character, NGramIndexNode> transitions = null;
 
 			if (match != null) {
 				transitions = match.getTransitions();
@@ -81,7 +81,7 @@ public class MarkovModelTest {
 			}
 
 			int count = 0;
-			for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+			for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
 				if (entry.getValue() != null) {
 					count++;
 				}
@@ -90,7 +90,7 @@ public class MarkovModelTest {
 			char[] tempArray = new char[count];
 
 			count = 0;
-			for (Map.Entry<Character, LetterNGramIndexNode> entry : transitions.entrySet()) {
+			for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
 				if (entry.getValue() != null) {
 					tempArray[count] = entry.getKey();
 

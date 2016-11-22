@@ -76,7 +76,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 		log.info("Imported " + total + " letter N-Grams in " + (System.currentTimeMillis() - start) + "ms");
 
-		this.model.postProcess(this.minCount);
+		this.model.postProcess(this.minCount, false, true);
 
 		return this.model;
 	}
@@ -105,10 +105,10 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 			try {
 				String content = new String(Files.readAllBytes(this.path));
 
-				content = content.replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "").toLowerCase();
+				content = content.toLowerCase().replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "");
 
-				for (int i = 0; i <= content.length() - order; i++) {
-					String kGramString = content.substring(i, i + order);
+				for (int i = 0; i < content.length(); i++) {
+					String kGramString = content.substring(i, i + Math.min(order, content.length() - i));
 
 					if (PATTERN.matcher(kGramString).matches()) {
 						continue;

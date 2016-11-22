@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 
@@ -41,17 +40,16 @@ import org.springframework.core.task.TaskExecutor;
 import com.ciphertool.sherlock.markov.MarkovModel;
 
 public class WordNGramMarkovImporter implements MarkovImporter {
-	private static Logger			log									= LoggerFactory.getLogger(WordNGramMarkovImporter.class);
+	private static Logger		log							= LoggerFactory.getLogger(WordNGramMarkovImporter.class);
 
-	private static final String		EXTENSION							= ".txt";
-	private static final String		NON_ALPHA							= ".*[^a-z].*";
-	private static final String		WHITESPACE_AND_INTER_SENTENCE_PUNC	= "[\\s-,;()`'\"]";
-	private static final Pattern	PATTERN								= Pattern.compile(NON_ALPHA);
+	private static final String	EXTENSION					= ".txt";
+	private static final String	WHITESPACE					= "[\\s]+";
+	private static final String	NON_WHITESPACE_AND_ALPHA	= "[^a-z\\s]";
 
-	private String					corpusDirectory;
-	private Integer					minCount;
-	private TaskExecutor			taskExecutor;
-	private MarkovModel				model;
+	private String				corpusDirectory;
+	private Integer				minCount;
+	private TaskExecutor		taskExecutor;
+	private MarkovModel			model;
 
 	@Override
 	@PostConstruct
@@ -74,9 +72,9 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 			}
 		}
 
-		log.info("Imported " + total + " letter N-Grams in " + (System.currentTimeMillis() - start) + "ms");
+		log.info("Imported " + total + " word N-Grams in " + (System.currentTimeMillis() - start) + "ms");
 
-		this.model.postProcess(this.minCount);
+		this.model.postProcess(this.minCount, false, false);
 
 		return this.model;
 	}
@@ -101,22 +99,26 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 
 			int order = model.getOrder();
 			long total = 0;
+			StringBuilder concatenated;
 
 			try {
 				String content = new String(Files.readAllBytes(this.path));
 
-				content = content.replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "").toLowerCase();
+				content = content.toLowerCase().replaceAll(NON_WHITESPACE_AND_ALPHA, "");
 
-				for (int i = 0; i <= content.length() - order; i++) {
-					String kGramString = content.substring(i, i + order);
+				String[] words = content.split(WHITESPACE);
 
-					if (PATTERN.matcher(kGramString).matches()) {
-						continue;
+				for (int i = 0; i < words.length; i++) {
+					concatenated = new StringBuilder();
+
+					// TODO: must add lower-order n-grams as well, such that the isTerminal flag is set appropriately
+					for (int j = 0; j < Math.min(order, words.length - i); j++) {
+						concatenated.append(words[i + j]);
 					}
 
-					total++;
+					model.addTransition(concatenated.toString());
 
-					model.addTransition(kGramString);
+					total++;
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);

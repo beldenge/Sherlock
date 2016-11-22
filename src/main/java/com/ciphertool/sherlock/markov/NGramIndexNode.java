@@ -23,19 +23,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-public class LetterNGramIndexNode {
-	private static final Pattern					LOWERCASE_LETTERS	= Pattern.compile("[a-z]");
-	private int										level				= 0;
-	private long									count				= 0L;
-	private double									ratio				= 0.0;
-	private boolean									isTerminal;
-	private Map<Character, LetterNGramIndexNode>	transitions			= new HashMap<Character, LetterNGramIndexNode>();
+public class NGramIndexNode {
+	private static final Pattern			LOWERCASE_LETTERS	= Pattern.compile("[a-z]");
+	private int								level				= 0;
+	private long							count				= 0L;
+	private double							ratio				= 0.0;
+	private boolean							isTerminal;
+	private Map<Character, NGramIndexNode>	transitions			= new HashMap<Character, NGramIndexNode>();
 
 	/**
 	 * @param isTerminal
 	 *            whether this is a terminal node
 	 */
-	public LetterNGramIndexNode(boolean isTerminal) {
+	public NGramIndexNode(boolean isTerminal) {
 		this.isTerminal = isTerminal;
 	}
 
@@ -45,7 +45,7 @@ public class LetterNGramIndexNode {
 	 * @param level
 	 *            the level to set
 	 */
-	public LetterNGramIndexNode(boolean isTerminal, int level) {
+	public NGramIndexNode(boolean isTerminal, int level) {
 		this.isTerminal = isTerminal;
 		this.level = level;
 	}
@@ -54,19 +54,23 @@ public class LetterNGramIndexNode {
 		return this.transitions.containsKey(c);
 	}
 
-	public LetterNGramIndexNode getChild(Character c) {
+	public NGramIndexNode getChild(Character c) {
 		return this.transitions.get(c);
 	}
 
-	public synchronized void addOrIncrementChildAsync(Character firstLetter, int level) {
-		if (!this.containsChild(firstLetter)) {
-			this.putChild(firstLetter, new LetterNGramIndexNode(true, level));
+	public synchronized void addOrIncrementChildAsync(Character firstLetter, int level, boolean isTerminal) {
+		NGramIndexNode child = this.getChild(firstLetter);
+
+		if (child == null) {
+			this.putChild(firstLetter, new NGramIndexNode(isTerminal, level));
+
+			child = this.getChild(firstLetter);
 		}
 
-		this.getChild(firstLetter).increment();
+		child.increment();
 	}
 
-	public void putChild(Character c, LetterNGramIndexNode child) {
+	public void putChild(Character c, NGramIndexNode child) {
 		if (!LOWERCASE_LETTERS.matcher(c.toString()).matches()) {
 			throw new IllegalArgumentException(
 					"Attempted to add a character to the Markov Model which is outside the range of "
@@ -115,7 +119,7 @@ public class LetterNGramIndexNode {
 	/**
 	 * @return the transitions array
 	 */
-	public Map<Character, LetterNGramIndexNode> getTransitions() {
+	public Map<Character, NGramIndexNode> getTransitions() {
 		return this.transitions;
 	}
 
