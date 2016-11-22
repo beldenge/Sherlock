@@ -226,7 +226,7 @@ public class MarkovModel {
 
 		if (nGram.length() > order) {
 			for (Character letter : LOWERCASE_LETTERS) {
-				NGramIndexNode match = this.find(nGram.substring(1) + letter.toString());
+				NGramIndexNode match = this.findLongest(nGram.substring(1) + letter.toString());
 
 				if (match != null) {
 					node.putChild(letter, match);
@@ -247,48 +247,29 @@ public class MarkovModel {
 
 	/**
 	 * @param nGram
-	 *            the N-gram String to search by
-	 * @return the matching NGramIndexNode
-	 */
-	public NGramIndexNode find(String nGram) {
-		return findMatch(rootNode, nGram);
-	}
-
-	protected static NGramIndexNode findMatch(NGramIndexNode node, String nGramString) {
-		NGramIndexNode nextNode = node.getChild(nGramString.charAt(0));
-
-		if (nextNode == null) {
-			return null;
-		}
-
-		if (nGramString.length() == 1) {
-			return nextNode;
-		}
-
-		return findMatch(nextNode, nGramString.substring(1));
-	}
-
-	/**
-	 * @param nGram
 	 *            the N-Gram String to search by
 	 * @return the longest matching NGramIndexNode
 	 */
 	public NGramIndexNode findLongest(String nGram) {
-		return findLongestMatch(rootNode, nGram);
+		return findLongestMatch(rootNode, nGram, null);
 	}
 
-	protected static NGramIndexNode findLongestMatch(NGramIndexNode node, String nGramString) {
+	protected static NGramIndexNode findLongestMatch(NGramIndexNode node, String nGramString, NGramIndexNode longestMatch) {
 		NGramIndexNode nextNode = node.getChild(nGramString.charAt(0));
 
 		if (nextNode == null) {
-			return node;
+			return longestMatch;
+		}
+
+		if (nextNode.isTerminal()) {
+			longestMatch = nextNode;
 		}
 
 		if (nGramString.length() == 1) {
-			return nextNode;
+			return longestMatch;
 		}
 
-		return findLongestMatch(nextNode, nGramString.substring(1));
+		return findLongestMatch(nextNode, nGramString.substring(1), longestMatch);
 	}
 
 	/**
@@ -307,11 +288,13 @@ public class MarkovModel {
 			return longestMatch;
 		}
 
+		if (nextNode.isTerminal()) {
+			longestMatch = longestMatch + nGramString.charAt(0);
+		}
+
 		if (nGramString.length() == 1) {
 			return longestMatch;
 		}
-
-		longestMatch = longestMatch + nGramString.charAt(0);
 
 		return findLongestMatchAsString(nextNode, nGramString.substring(1), longestMatch);
 	}
