@@ -39,7 +39,7 @@ public class TerminalNGramIndexNode extends NGramIndexNode {
 	/**
 	 * @return the count
 	 */
-	public Long getCount() {
+	public long getCount() {
 		return this.count;
 	}
 
