@@ -26,6 +26,12 @@ public class TerminalInfo {
 	private double	ratio	= 0.0;
 
 	/**
+	 * Default no-args constructor
+	 */
+	public TerminalInfo() {
+	}
+
+	/**
 	 * @param level
 	 *            the level to set
 	 */
