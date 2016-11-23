@@ -25,17 +25,17 @@ import java.util.regex.Pattern;
 
 public class NGramIndexNode {
 	private static final Pattern			LOWERCASE_LETTERS	= Pattern.compile("[a-z]");
-	private Map<Character, NGramIndexNode>	transitions			= new HashMap<Character, NGramIndexNode>();
+	private Map<Character, NGramIndexNode>	transitions;
 
 	public NGramIndexNode() {
 	}
 
 	public boolean containsChild(Character c) {
-		return this.transitions.containsKey(c);
+		return this.getTransitions().containsKey(c);
 	}
 
 	public NGramIndexNode getChild(Character c) {
-		return this.transitions.get(c);
+		return this.getTransitions().get(c);
 	}
 
 	public synchronized void addOrIncrementChildAsync(Character firstLetter, int level, boolean isTerminal) {
@@ -71,13 +71,17 @@ public class NGramIndexNode {
 							+ LOWERCASE_LETTERS);
 		}
 
-		this.transitions.put(c, child);
+		this.getTransitions().put(c, child);
 	}
 
 	/**
 	 * @return the transitions array
 	 */
 	public Map<Character, NGramIndexNode> getTransitions() {
+		if (this.transitions == null) {
+			this.transitions = new HashMap<Character, NGramIndexNode>(1);
+		}
+
 		return this.transitions;
 	}
 }
