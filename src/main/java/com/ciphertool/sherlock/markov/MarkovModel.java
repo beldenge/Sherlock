@@ -39,7 +39,7 @@ public class MarkovModel {
 			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
 			'z' });
 
-	private NGramIndexNode					rootNode			= new NGramIndexNode(true, 0);
+	private NGramIndexNode					rootNode			= new NGramIndexNode();
 	private boolean							postProcessed		= false;
 	private Integer							order;
 	private TaskExecutor					taskExecutor;
@@ -182,7 +182,8 @@ public class MarkovModel {
 				continue;
 			}
 
-			if (entry.getValue().getCount() < minCount) {
+			if (entry.getValue() instanceof TerminalNGramIndexNode
+					&& ((TerminalNGramIndexNode) entry.getValue()).getCount() < minCount) {
 				keysToRemove.add(entry.getKey());
 
 				continue;
@@ -205,16 +206,20 @@ public class MarkovModel {
 
 		Long total = 0L;
 		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
-			if (entry.getValue() != null) {
-				total += entry.getValue().getCount();
+			if (entry.getValue() != null && entry.getValue() instanceof TerminalNGramIndexNode) {
+				total += ((TerminalNGramIndexNode) entry.getValue()).getCount();
 			}
 		}
+
+		TerminalNGramIndexNode terminalChild;
 
 		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
 			NGramIndexNode child = entry.getValue();
 
-			if (child != null) {
-				child.setRatio((double) child.getCount() / (double) total);
+			if (child instanceof TerminalNGramIndexNode) {
+				terminalChild = (TerminalNGramIndexNode) child;
+
+				terminalChild.setRatio((double) terminalChild.getCount() / (double) total);
 
 				normalize(child);
 			}
@@ -261,7 +266,7 @@ public class MarkovModel {
 			return longestMatch;
 		}
 
-		if (nextNode.isTerminal()) {
+		if (nextNode instanceof TerminalNGramIndexNode) {
 			longestMatch = nextNode;
 		}
 
@@ -288,7 +293,7 @@ public class MarkovModel {
 			return longestMatch;
 		}
 
-		if (nextNode.isTerminal()) {
+		if (nextNode instanceof TerminalNGramIndexNode) {
 			longestMatch = longestMatch + nGramString.charAt(0);
 		}
 
@@ -329,7 +334,8 @@ public class MarkovModel {
 	}
 
 	protected void appendTransitions(String parent, Character symbol, NGramIndexNode node, StringBuilder sb) {
-		sb.append("\n[" + parent + "] ->" + symbol + " | " + node.getCount());
+		sb.append("\n[" + parent + "] ->" + symbol + " | "
+				+ ((node instanceof TerminalNGramIndexNode) ? ((TerminalNGramIndexNode) node).getCount() : 0));
 
 		Map<Character, NGramIndexNode> transitions = node.getTransitions();
 

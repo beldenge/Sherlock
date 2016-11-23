@@ -25,29 +25,9 @@ import java.util.regex.Pattern;
 
 public class NGramIndexNode {
 	private static final Pattern			LOWERCASE_LETTERS	= Pattern.compile("[a-z]");
-	private int								level				= 0;
-	private long							count				= 0L;
-	private double							ratio				= 0.0;
-	private boolean							isTerminal;
 	private Map<Character, NGramIndexNode>	transitions			= new HashMap<Character, NGramIndexNode>();
 
-	/**
-	 * @param isTerminal
-	 *            whether this is a terminal node
-	 */
-	public NGramIndexNode(boolean isTerminal) {
-		this.isTerminal = isTerminal;
-	}
-
-	/**
-	 * @param isTerminal
-	 *            whether this is a terminal node
-	 * @param level
-	 *            the level to set
-	 */
-	public NGramIndexNode(boolean isTerminal, int level) {
-		this.isTerminal = isTerminal;
-		this.level = level;
+	public NGramIndexNode() {
 	}
 
 	public boolean containsChild(Character c) {
@@ -62,13 +42,25 @@ public class NGramIndexNode {
 		NGramIndexNode child = this.getChild(firstLetter);
 
 		if (child == null) {
-			this.putChild(firstLetter, new NGramIndexNode(isTerminal, level));
+			this.putChild(firstLetter, isTerminal ? new TerminalNGramIndexNode(level) : new NGramIndexNode());
 
 			child = this.getChild(firstLetter);
 		}
 
 		if (isTerminal) {
-			child.increment();
+			if (!(child instanceof TerminalNGramIndexNode)) {
+				TerminalNGramIndexNode newChild = new TerminalNGramIndexNode(level);
+
+				for (Map.Entry<Character, NGramIndexNode> entry : child.getTransitions().entrySet()) {
+					newChild.putChild(entry.getKey(), entry.getValue());
+				}
+
+				this.putChild(firstLetter, newChild);
+
+				child = newChild;
+			}
+
+			((TerminalNGramIndexNode) child).increment();
 		}
 	}
 
@@ -82,61 +74,10 @@ public class NGramIndexNode {
 		this.transitions.put(c, child);
 	}
 
-	public void increment() {
-		this.count += 1L;
-	}
-
-	/**
-	 * @return the count
-	 */
-	public Long getCount() {
-		return this.count;
-	}
-
-	/**
-	 * @return the level
-	 */
-	public int getLevel() {
-		return this.level;
-	}
-
-	/**
-	 * @return the ratio
-	 */
-	public double getRatio() {
-		return this.ratio;
-	}
-
-	/**
-	 * All current usages of this method are thread-safe, but since it's used in a multi-threaded way, this is a
-	 * defensive measure in case future usage changes are not thread-safe.
-	 * 
-	 * @param ratio
-	 *            the ratio to set
-	 */
-	public synchronized void setRatio(double ratio) {
-		this.ratio = ratio;
-	}
-
 	/**
 	 * @return the transitions array
 	 */
 	public Map<Character, NGramIndexNode> getTransitions() {
 		return this.transitions;
-	}
-
-	/**
-	 * @return the isTerminal
-	 */
-	public boolean isTerminal() {
-		return isTerminal;
-	}
-
-	/**
-	 * @param isTerminal
-	 *            the isTerminal to set
-	 */
-	public void setIsTerminal(boolean isTerminal) {
-		this.isTerminal = isTerminal;
 	}
 }
