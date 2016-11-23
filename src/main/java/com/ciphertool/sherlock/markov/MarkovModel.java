@@ -229,7 +229,7 @@ public class MarkovModel {
 	protected void linkChild(NGramIndexNode node, String nGram) {
 		Map<Character, NGramIndexNode> transitions = node.getTransitions();
 
-		if (nGram.length() > order) {
+		if (nGram.length() == order) {
 			for (Character letter : LOWERCASE_LETTERS) {
 				NGramIndexNode match = this.findLongest(nGram.substring(1) + letter.toString());
 
