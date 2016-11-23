@@ -19,16 +19,17 @@
 
 package com.ciphertool.sherlock.markov;
 
-public class TerminalNGramIndexNode extends NGramIndexNode {
+public class TerminalInfo {
 	private int		level	= 0;
 	private long	count	= 0L;
+	// TODO: consider using BigDecimal for better precision but with potentially significant memory overhead
 	private double	ratio	= 0.0;
 
 	/**
 	 * @param level
 	 *            the level to set
 	 */
-	public TerminalNGramIndexNode(int level) {
+	public TerminalInfo(int level) {
 		this.level = level;
 	}
 

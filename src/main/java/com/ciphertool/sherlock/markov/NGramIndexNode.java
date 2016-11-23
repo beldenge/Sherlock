@@ -26,8 +26,13 @@ import java.util.regex.Pattern;
 public class NGramIndexNode {
 	private static final Pattern			LOWERCASE_LETTERS	= Pattern.compile("[a-z]");
 	private Map<Character, NGramIndexNode>	transitions;
+	private TerminalInfo					terminalInfo;
 
 	public NGramIndexNode() {
+	}
+
+	public NGramIndexNode(TerminalInfo terminalInfo) {
+		this.terminalInfo = terminalInfo;
 	}
 
 	public boolean containsChild(Character c) {
@@ -42,25 +47,17 @@ public class NGramIndexNode {
 		NGramIndexNode child = this.getChild(firstLetter);
 
 		if (child == null) {
-			this.putChild(firstLetter, isTerminal ? new TerminalNGramIndexNode(level) : new NGramIndexNode());
+			this.putChild(firstLetter, isTerminal ? new NGramIndexNode(new TerminalInfo(level)) : new NGramIndexNode());
 
 			child = this.getChild(firstLetter);
 		}
 
 		if (isTerminal) {
-			if (!(child instanceof TerminalNGramIndexNode)) {
-				TerminalNGramIndexNode newChild = new TerminalNGramIndexNode(level);
-
-				for (Map.Entry<Character, NGramIndexNode> entry : child.getTransitions().entrySet()) {
-					newChild.putChild(entry.getKey(), entry.getValue());
-				}
-
-				this.putChild(firstLetter, newChild);
-
-				child = newChild;
+			if (child.getTerminalInfo() == null) {
+				child.setTerminalInfo(new TerminalInfo(level));
 			}
 
-			((TerminalNGramIndexNode) child).increment();
+			child.getTerminalInfo().increment();
 		}
 	}
 
@@ -83,5 +80,20 @@ public class NGramIndexNode {
 		}
 
 		return this.transitions;
+	}
+
+	/**
+	 * @return the terminalInfo
+	 */
+	public TerminalInfo getTerminalInfo() {
+		return terminalInfo;
+	}
+
+	/**
+	 * @param terminalInfo
+	 *            the terminalInfo to set
+	 */
+	public void setTerminalInfo(TerminalInfo terminalInfo) {
+		this.terminalInfo = terminalInfo;
 	}
 }
