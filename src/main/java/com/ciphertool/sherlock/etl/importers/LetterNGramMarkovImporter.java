@@ -51,7 +51,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 	private String					corpusDirectory;
 	private Integer					minCount;
 	private TaskExecutor			taskExecutor;
-	private MarkovModel				letterMarkovModel;
+	private MarkovModel				markovModel;
 
 	@Override
 	@PostConstruct
@@ -76,9 +76,9 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 		log.info("Imported " + total + " letter N-Grams in " + (System.currentTimeMillis() - start) + "ms");
 
-		this.letterMarkovModel.postProcess(this.minCount, false, true);
+		this.markovModel.postProcess(this.minCount, false, true);
 
-		return this.letterMarkovModel;
+		return this.markovModel;
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 		public Long call() throws Exception {
 			log.debug("Importing file {}", this.path.toString());
 
-			int order = letterMarkovModel.getOrder();
+			int order = markovModel.getLetterOrder();
 			long total = 0;
 
 			try {
@@ -116,7 +116,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 					total++;
 
-					letterMarkovModel.addTransition(nGramString, true);
+					markovModel.addLetterTransition(nGramString, true);
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);
@@ -185,11 +185,11 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 	}
 
 	/**
-	 * @param letterMarkovModel
-	 *            the letterMarkovModel to set
+	 * @param markovModel
+	 *            the markovModel to set
 	 */
 	@Required
-	public void setLetterMarkovModel(MarkovModel letterMarkovModel) {
-		this.letterMarkovModel = letterMarkovModel;
+	public void setMarkovModel(MarkovModel markovModel) {
+		this.markovModel = markovModel;
 	}
 }
