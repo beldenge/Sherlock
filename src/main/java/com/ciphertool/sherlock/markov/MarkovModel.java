@@ -32,8 +32,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.task.TaskExecutor;
 
-import com.ciphertool.sherlock.enumerations.TerminalType;
-
 public class MarkovModel {
 	private static Logger					log					= LoggerFactory.getLogger(MarkovModel.class);
 
@@ -96,21 +94,34 @@ public class MarkovModel {
 	}
 
 	public boolean addLetterTransition(String nGramString) {
-		return populateNode(rootNode, nGramString, true, null, TerminalType.LETTER);
+		return populateLetter(rootNode, nGramString, true);
+	}
+
+	protected boolean populateLetter(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal) {
+		Character firstLetter = nGramString.charAt(0);
+
+		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, letterOrder - (nGramString.length()
+				- 1), alwaysTerminal || nGramString.length() == 1);
+
+		if (nGramString.length() > 1) {
+			return populateLetter(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal);
+		}
+
+		return isNew;
 	}
 
 	public boolean addWordTransition(String nGramString, int level) {
-		return populateNode(rootNode, nGramString, false, level, TerminalType.WORD);
+		return populateWord(rootNode, nGramString, false, level);
 	}
 
-	protected boolean populateNode(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal, Integer level, TerminalType terminalType) {
+	protected boolean populateWord(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal, int level) {
 		Character firstLetter = nGramString.charAt(0);
 
-		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, (level != null) ? level : (letterOrder
-				- (nGramString.length() - 1)), alwaysTerminal || nGramString.length() == 1, terminalType);
+		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, level, alwaysTerminal
+				|| nGramString.length() == 1);
 
 		if (nGramString.length() > 1) {
-			return populateNode(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal, level, terminalType);
+			return populateWord(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal, level);
 		}
 
 		return isNew;
@@ -242,7 +253,7 @@ public class MarkovModel {
 
 		if (nGram.length() == letterOrder) {
 			for (Character letter : LOWERCASE_LETTERS) {
-				NGramIndexNode match = this.findLongest(nGram.substring(1) + letter.toString(), TerminalType.LETTER);
+				NGramIndexNode match = this.findLongest(nGram.substring(1) + letter.toString());
 
 				if (match != null) {
 					node.putChild(letter, match);
@@ -266,19 +277,18 @@ public class MarkovModel {
 	 *            the N-Gram String to search by
 	 * @return the longest matching NGramIndexNode
 	 */
-	public NGramIndexNode findLongest(String nGram, TerminalType terminalType) {
-		return findLongestMatch(rootNode, nGram, null, terminalType);
+	public NGramIndexNode findLongest(String nGram) {
+		return findLongestMatch(rootNode, nGram, null);
 	}
 
-	protected static NGramIndexNode findLongestMatch(NGramIndexNode node, String nGramString, NGramIndexNode longestMatch, TerminalType terminalType) {
+	protected static NGramIndexNode findLongestMatch(NGramIndexNode node, String nGramString, NGramIndexNode longestMatch) {
 		NGramIndexNode nextNode = node.getChild(nGramString.charAt(0));
 
 		if (nextNode == null) {
 			return longestMatch;
 		}
 
-		if (nextNode.getTerminalInfo() != null
-				&& nextNode.getTerminalInfo().getTerminalType().isEqualTo(terminalType)) {
+		if (nextNode.getTerminalInfo() != null) {
 			longestMatch = nextNode;
 		}
 
@@ -286,7 +296,7 @@ public class MarkovModel {
 			return longestMatch;
 		}
 
-		return findLongestMatch(nextNode, nGramString.substring(1), longestMatch, terminalType);
+		return findLongestMatch(nextNode, nGramString.substring(1), longestMatch);
 	}
 
 	/**
@@ -294,19 +304,18 @@ public class MarkovModel {
 	 *            the N-gram String to search by
 	 * @return the longest matching String
 	 */
-	public String findLongestAsString(String nGram, TerminalType terminalType) {
-		return findLongestMatchAsString(rootNode, nGram, "", terminalType);
+	public String findLongestAsString(String nGram) {
+		return findLongestMatchAsString(rootNode, nGram, "");
 	}
 
-	protected static String findLongestMatchAsString(NGramIndexNode node, String nGramString, String longestMatch, TerminalType terminalType) {
+	protected static String findLongestMatchAsString(NGramIndexNode node, String nGramString, String longestMatch) {
 		NGramIndexNode nextNode = node.getChild(nGramString.charAt(0));
 
 		if (nextNode == null) {
 			return longestMatch;
 		}
 
-		if (nextNode.getTerminalInfo() != null
-				&& nextNode.getTerminalInfo().getTerminalType().isEqualTo(terminalType)) {
+		if (nextNode.getTerminalInfo() != null) {
 			longestMatch = longestMatch + nGramString.charAt(0);
 		}
 
@@ -314,7 +323,7 @@ public class MarkovModel {
 			return longestMatch;
 		}
 
-		return findLongestMatchAsString(nextNode, nGramString.substring(1), longestMatch, terminalType);
+		return findLongestMatchAsString(nextNode, nGramString.substring(1), longestMatch);
 	}
 
 	/**

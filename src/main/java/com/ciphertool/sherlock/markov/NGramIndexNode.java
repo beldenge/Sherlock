@@ -23,8 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import com.ciphertool.sherlock.enumerations.TerminalType;
-
 public class NGramIndexNode {
 	private static final Pattern			LOWERCASE_LETTERS	= Pattern.compile("[a-z]");
 	private Map<Character, NGramIndexNode>	transitions;
@@ -45,14 +43,13 @@ public class NGramIndexNode {
 		return this.getTransitions().get(c);
 	}
 
-	public synchronized boolean addOrIncrementChildAsync(Character firstLetter, int level, boolean isTerminal, TerminalType terminalType) {
+	public synchronized boolean addOrIncrementChildAsync(Character firstLetter, int level, boolean isTerminal) {
 		NGramIndexNode child = this.getChild(firstLetter);
 
 		boolean isNew = false;
 
 		if (child == null) {
-			this.putChild(firstLetter, isTerminal ? new NGramIndexNode(new TerminalInfo(level,
-					terminalType)) : new NGramIndexNode());
+			this.putChild(firstLetter, isTerminal ? new NGramIndexNode(new TerminalInfo(level)) : new NGramIndexNode());
 
 			if (isTerminal) {
 				isNew = true;
@@ -62,22 +59,13 @@ public class NGramIndexNode {
 		}
 
 		if (isTerminal) {
-			TerminalInfo terminalInfo = child.getTerminalInfo();
-
-			if (terminalInfo == null) {
-				child.setTerminalInfo(new TerminalInfo(level, terminalType));
-				terminalInfo = child.getTerminalInfo();
+			if (child.getTerminalInfo() == null) {
+				child.setTerminalInfo(new TerminalInfo(level));
 
 				isNew = true;
 			}
 
-			if (terminalInfo.getTerminalType() != terminalType) {
-				terminalInfo.setTerminalType(TerminalType.BOTH);
-
-				isNew = true;
-			}
-
-			terminalInfo.increment();
+			child.getTerminalInfo().increment();
 		}
 
 		return isNew;

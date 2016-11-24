@@ -19,14 +19,11 @@
 
 package com.ciphertool.sherlock.markov;
 
-import com.ciphertool.sherlock.enumerations.TerminalType;
-
 public class TerminalInfo {
-	private int				level	= 0;
-	private long			count	= 0L;
+	private int		level	= 0;
+	private long	count	= 0L;
 	// TODO: consider using BigDecimal for better precision but with potentially significant memory overhead
-	private double			ratio	= 0.0;
-	private TerminalType	terminalType;
+	private double	ratio	= 0.0;
 
 	/**
 	 * Default no-args constructor
@@ -37,12 +34,9 @@ public class TerminalInfo {
 	/**
 	 * @param level
 	 *            the level to set
-	 * @param terminalType
-	 *            the TerminalType to set
 	 */
-	public TerminalInfo(int level, TerminalType terminalType) {
+	public TerminalInfo(int level) {
 		this.level = level;
-		this.terminalType = terminalType;
 	}
 
 	public void increment() {
@@ -79,20 +73,5 @@ public class TerminalInfo {
 	 */
 	public synchronized void setRatio(double ratio) {
 		this.ratio = ratio;
-	}
-
-	/**
-	 * @return the terminalType
-	 */
-	public TerminalType getTerminalType() {
-		return terminalType;
-	}
-
-	/**
-	 * @param terminalType
-	 *            the terminalType to set
-	 */
-	public void setTerminalType(TerminalType terminalType) {
-		this.terminalType = terminalType;
 	}
 }
