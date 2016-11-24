@@ -43,30 +43,22 @@ public class NGramIndexNode {
 		return this.getTransitions().get(c);
 	}
 
-	public synchronized boolean addOrIncrementChildAsync(Character firstLetter, int level, boolean isTerminal) {
+	public synchronized void addOrIncrementChildAsync(Character firstLetter, int level, boolean isTerminal) {
 		NGramIndexNode child = this.getChild(firstLetter);
-
-		boolean isNew = false;
 
 		if (child == null) {
 			this.putChild(firstLetter, isTerminal ? new NGramIndexNode(new TerminalInfo(level)) : new NGramIndexNode());
 
 			child = this.getChild(firstLetter);
-
-			isNew = true;
 		}
 
 		if (isTerminal) {
 			if (child.getTerminalInfo() == null) {
 				child.setTerminalInfo(new TerminalInfo(level));
-
-				isNew = true;
 			}
 
 			child.getTerminalInfo().increment();
 		}
-
-		return isNew;
 	}
 
 	public void putChild(Character c, NGramIndexNode child) {
