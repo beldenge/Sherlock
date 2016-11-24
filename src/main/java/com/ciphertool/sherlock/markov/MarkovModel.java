@@ -41,8 +41,7 @@ public class MarkovModel {
 
 	private NGramIndexNode					rootNode			= new NGramIndexNode();
 	private boolean							postProcessed		= false;
-	private Integer							letterOrder;
-	private Integer							wordOrder;
+	private Integer							order;
 	private TaskExecutor					taskExecutor;
 
 	/**
@@ -93,32 +92,18 @@ public class MarkovModel {
 		}
 	}
 
-	public void addLetterTransition(String nGramString, boolean alwaysTerminal) {
-		populateLetter(rootNode, nGramString, alwaysTerminal);
+	public void addTransition(String nGramString, boolean alwaysTerminal) {
+		populateMap(rootNode, nGramString, alwaysTerminal);
 	}
 
-	protected void populateLetter(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal) {
+	protected void populateMap(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal) {
 		Character firstLetter = nGramString.charAt(0);
 
-		currentNode.addOrIncrementChildAsync(firstLetter, letterOrder - (nGramString.length() - 1), alwaysTerminal
+		currentNode.addOrIncrementChildAsync(firstLetter, order - (nGramString.length() - 1), alwaysTerminal
 				|| nGramString.length() == 1);
 
 		if (nGramString.length() > 1) {
-			populateLetter(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal);
-		}
-	}
-
-	public void addWordTransition(String nGramString, boolean alwaysTerminal, int level) {
-		populateWord(rootNode, nGramString, alwaysTerminal, level);
-	}
-
-	protected void populateWord(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal, int level) {
-		Character firstLetter = nGramString.charAt(0);
-
-		currentNode.addOrIncrementChildAsync(firstLetter, level, alwaysTerminal || nGramString.length() == 1);
-
-		if (nGramString.length() > 1) {
-			populateWord(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal, level);
+			populateMap(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal);
 		}
 	}
 
@@ -246,7 +231,7 @@ public class MarkovModel {
 	protected void linkChild(NGramIndexNode node, String nGram) {
 		Map<Character, NGramIndexNode> transitions = node.getTransitions();
 
-		if (nGram.length() == letterOrder) {
+		if (nGram.length() == order) {
 			for (Character letter : LOWERCASE_LETTERS) {
 				NGramIndexNode match = this.findLongest(nGram.substring(1) + letter.toString());
 
@@ -328,6 +313,13 @@ public class MarkovModel {
 		return rootNode;
 	}
 
+	/**
+	 * @return the order
+	 */
+	public int getOrder() {
+		return order;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -361,35 +353,12 @@ public class MarkovModel {
 	}
 
 	/**
-	 * @return the letterOrder
-	 */
-	public Integer getLetterOrder() {
-		return letterOrder;
-	}
-
-	/**
-	 * @param letterOrder
-	 *            the letterOrder to set
+	 * @param order
+	 *            the order to set
 	 */
 	@Required
-	public void setLetterOrder(Integer letterOrder) {
-		this.letterOrder = letterOrder;
-	}
-
-	/**
-	 * @return the wordOrder
-	 */
-	public Integer getWordOrder() {
-		return wordOrder;
-	}
-
-	/**
-	 * @param wordOrder
-	 *            the wordOrder to set
-	 */
-	@Required
-	public void setWordOrder(Integer wordOrder) {
-		this.wordOrder = wordOrder;
+	public void setOrder(Integer order) {
+		this.order = order;
 	}
 
 	/**
