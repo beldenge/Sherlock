@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import com.ciphertool.sherlock.enumerations.TerminalType;
 import com.ciphertool.sherlock.etl.importers.LetterNGramMarkovImporter;
 
 public class MarkovModelTest {
@@ -66,7 +67,7 @@ public class MarkovModelTest {
 		sb.append(root);
 
 		for (int i = 0; i < 100; i++) {
-			NGramIndexNode match = model.findLongest(root);
+			NGramIndexNode match = model.findLongest(root, TerminalType.LETTER);
 
 			Map<Character, NGramIndexNode> transitions = null;
 

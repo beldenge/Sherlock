@@ -81,7 +81,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 		log.info("Imported " + unique + " distinct letter N-Grams out of " + total + " total in "
 				+ (System.currentTimeMillis() - start) + "ms");
 
-		this.markovModel.postProcess(this.minCount, false, true);
+		this.markovModel.postProcess(this.minCount, false, false);
 
 		return this.markovModel;
 	}
