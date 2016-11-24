@@ -124,8 +124,9 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 
 						if (concatenated.length() != 0) {
 							unique += markovModel.addWordTransition(concatenated.toString(), false, j) ? 1 : 0;
-							total++;
 						}
+
+						total++;
 					}
 				}
 			} catch (IOException ioe) {
