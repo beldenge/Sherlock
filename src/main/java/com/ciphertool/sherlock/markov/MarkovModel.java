@@ -93,33 +93,38 @@ public class MarkovModel {
 		}
 	}
 
-	public void addLetterTransition(String nGramString, boolean alwaysTerminal) {
-		populateLetter(rootNode, nGramString, alwaysTerminal);
+	public boolean addLetterTransition(String nGramString, boolean alwaysTerminal) {
+		return populateLetter(rootNode, nGramString, alwaysTerminal);
 	}
 
-	protected void populateLetter(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal) {
+	protected boolean populateLetter(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal) {
 		Character firstLetter = nGramString.charAt(0);
 
-		currentNode.addOrIncrementChildAsync(firstLetter, letterOrder - (nGramString.length() - 1), alwaysTerminal
+		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, letterOrder - (nGramString.length()
+				- 1), alwaysTerminal || nGramString.length() == 1);
+
+		if (nGramString.length() > 1) {
+			return populateLetter(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal);
+		}
+
+		return isNew;
+	}
+
+	public boolean addWordTransition(String nGramString, boolean alwaysTerminal, int level) {
+		return populateWord(rootNode, nGramString, alwaysTerminal, level);
+	}
+
+	protected boolean populateWord(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal, int level) {
+		Character firstLetter = nGramString.charAt(0);
+
+		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, level, alwaysTerminal
 				|| nGramString.length() == 1);
 
 		if (nGramString.length() > 1) {
-			populateLetter(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal);
+			return populateWord(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal, level);
 		}
-	}
 
-	public void addWordTransition(String nGramString, boolean alwaysTerminal, int level) {
-		populateWord(rootNode, nGramString, alwaysTerminal, level);
-	}
-
-	protected void populateWord(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal, int level) {
-		Character firstLetter = nGramString.charAt(0);
-
-		currentNode.addOrIncrementChildAsync(firstLetter, level, alwaysTerminal || nGramString.length() == 1);
-
-		if (nGramString.length() > 1) {
-			populateWord(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal, level);
-		}
+		return isNew;
 	}
 
 	public void postProcess(int minCount, boolean normalize, boolean linkChildren) {

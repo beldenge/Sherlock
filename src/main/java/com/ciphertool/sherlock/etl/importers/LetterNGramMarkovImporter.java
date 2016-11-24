@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.task.TaskExecutor;
 
+import com.ciphertool.sherlock.dto.ParseResults;
 import com.ciphertool.sherlock.markov.MarkovModel;
 
 public class LetterNGramMarkovImporter implements MarkovImporter {
@@ -60,13 +61,16 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 		log.info("Starting corpus text import...");
 
-		List<FutureTask<Long>> futures = parseFiles(Paths.get(this.corpusDirectory));
+		List<FutureTask<ParseResults>> futures = parseFiles(Paths.get(this.corpusDirectory));
+		ParseResults parseResults;
+		long total = 0L;
+		long unique = 0L;
 
-		long total = 0;
-
-		for (FutureTask<Long> future : futures) {
+		for (FutureTask<ParseResults> future : futures) {
 			try {
-				total += future.get();
+				parseResults = future.get();
+				total += parseResults.getTotal();
+				unique += parseResults.getUnique();
 			} catch (InterruptedException ie) {
 				log.error("Caught InterruptedException while waiting for ParseFileTask ", ie);
 			} catch (ExecutionException ee) {
@@ -74,7 +78,8 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 			}
 		}
 
-		log.info("Imported " + total + " letter N-Grams in " + (System.currentTimeMillis() - start) + "ms");
+		log.info("Imported " + unique + " distinct letter N-Grams out of " + total + " total in "
+				+ (System.currentTimeMillis() - start) + "ms");
 
 		this.markovModel.postProcess(this.minCount, false, true);
 
@@ -84,7 +89,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 	/**
 	 * A concurrent task for parsing a file into a Markov model.
 	 */
-	protected class ParseFileTask implements Callable<Long> {
+	protected class ParseFileTask implements Callable<ParseResults> {
 		private Path path;
 
 		/**
@@ -96,11 +101,12 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 		}
 
 		@Override
-		public Long call() throws Exception {
+		public ParseResults call() throws Exception {
 			log.debug("Importing file {}", this.path.toString());
 
 			int order = markovModel.getLetterOrder();
 			long total = 0;
+			long unique = 0;
 
 			try {
 				String content = new String(Files.readAllBytes(this.path));
@@ -114,21 +120,21 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 						continue;
 					}
 
-					total++;
+					unique += markovModel.addLetterTransition(nGramString, true) ? 1 : 0;
 
-					markovModel.addLetterTransition(nGramString, true);
+					total++;
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);
 			}
 
-			return total;
+			return new ParseResults(total, unique);
 		}
 	}
 
-	protected List<FutureTask<Long>> parseFiles(Path path) {
-		List<FutureTask<Long>> tasks = new ArrayList<FutureTask<Long>>();
-		FutureTask<Long> task;
+	protected List<FutureTask<ParseResults>> parseFiles(Path path) {
+		List<FutureTask<ParseResults>> tasks = new ArrayList<FutureTask<ParseResults>>();
+		FutureTask<ParseResults> task;
 		String filename;
 
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
@@ -145,7 +151,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 						continue;
 					}
 
-					task = new FutureTask<Long>(new ParseFileTask(entry));
+					task = new FutureTask<ParseResults>(new ParseFileTask(entry));
 					tasks.add(task);
 					this.taskExecutor.execute(task);
 				}
