@@ -92,19 +92,25 @@ public class MarkovModel {
 		}
 	}
 
-	public void addTransition(String nGramString, boolean alwaysTerminal) {
-		populateMap(rootNode, nGramString, alwaysTerminal);
+	public boolean addLetterTransition(String nGramString) {
+		return populateNode(rootNode, nGramString, true, null);
 	}
 
-	protected void populateMap(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal) {
+	public boolean addWordTransition(String nGramString, int level) {
+		return populateNode(rootNode, nGramString, false, level);
+	}
+
+	protected boolean populateNode(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal, Integer level) {
 		Character firstLetter = nGramString.charAt(0);
 
-		currentNode.addOrIncrementChildAsync(firstLetter, order - (nGramString.length() - 1), alwaysTerminal
-				|| nGramString.length() == 1);
+		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, (level != null) ? level : (order
+				- (nGramString.length() - 1)), alwaysTerminal || nGramString.length() == 1);
 
 		if (nGramString.length() > 1) {
-			populateMap(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal);
+			return populateNode(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal, level);
 		}
+
+		return isNew;
 	}
 
 	public void postProcess(int minCount, boolean normalize, boolean linkChildren) {
@@ -313,13 +319,6 @@ public class MarkovModel {
 		return rootNode;
 	}
 
-	/**
-	 * @return the order
-	 */
-	public int getOrder() {
-		return order;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -350,6 +349,13 @@ public class MarkovModel {
 				appendTransitions(parent + entry.getKey(), entry.getKey(), entry.getValue(), sb);
 			}
 		}
+	}
+
+	/**
+	 * @return the order
+	 */
+	public Integer getOrder() {
+		return order;
 	}
 
 	/**
