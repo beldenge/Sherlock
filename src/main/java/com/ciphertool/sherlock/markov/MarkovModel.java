@@ -93,8 +93,8 @@ public class MarkovModel {
 		}
 	}
 
-	public boolean addLetterTransition(String nGramString) {
-		return populateLetter(rootNode, nGramString, true);
+	public boolean addLetterTransition(String nGramString, boolean alwaysTerminal) {
+		return populateLetter(rootNode, nGramString, alwaysTerminal);
 	}
 
 	protected boolean populateLetter(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal) {
@@ -110,8 +110,8 @@ public class MarkovModel {
 		return isNew;
 	}
 
-	public boolean addWordTransition(String nGramString, int level) {
-		return populateWord(rootNode, nGramString, false, level);
+	public boolean addWordTransition(String nGramString, boolean alwaysTerminal, int level) {
+		return populateWord(rootNode, nGramString, alwaysTerminal, level);
 	}
 
 	protected boolean populateWord(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal, int level) {

@@ -120,7 +120,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 						continue;
 					}
 
-					unique += (markovModel.addLetterTransition(nGramString) ? 1 : 0);
+					unique += markovModel.addLetterTransition(nGramString, true) ? 1 : 0;
 					total++;
 				}
 			} catch (IOException ioe) {
