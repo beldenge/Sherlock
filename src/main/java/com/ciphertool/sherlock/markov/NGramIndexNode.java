@@ -51,9 +51,11 @@ public class NGramIndexNode {
 		if (child == null) {
 			this.putChild(firstLetter, isTerminal ? new NGramIndexNode(new TerminalInfo(level)) : new NGramIndexNode());
 
-			child = this.getChild(firstLetter);
+			if (isTerminal) {
+				isNew = true;
+			}
 
-			isNew = true;
+			child = this.getChild(firstLetter);
 		}
 
 		if (isTerminal) {
