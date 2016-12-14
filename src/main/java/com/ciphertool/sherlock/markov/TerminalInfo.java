@@ -22,9 +22,10 @@ package com.ciphertool.sherlock.markov;
 import java.math.BigDecimal;
 
 public class TerminalInfo {
-	private int		level	= 0;
-	private long	count	= 0L;
-	private BigDecimal	ratio;
+	private int			level	= 0;
+	private long		count	= 0L;
+	private BigDecimal	probability;
+	private BigDecimal	logProbability;
 
 	/**
 	 * Default no-args constructor
@@ -39,7 +40,7 @@ public class TerminalInfo {
 	public TerminalInfo(int level) {
 		this.level = level;
 	}
-	
+
 	/**
 	 * @param level
 	 *            the level to set
@@ -69,20 +70,35 @@ public class TerminalInfo {
 	}
 
 	/**
-	 * @return the ratio
+	 * @return the probability
 	 */
-	public BigDecimal getRatio() {
-		return this.ratio;
+	public BigDecimal getProbability() {
+		return this.probability;
+	}
+
+	/**
+	 * @return the log probability (with logarithm base of 10)
+	 */
+	public BigDecimal getLogProbability() {
+		if (probability == null) {
+			return BigDecimal.ZERO;
+		}
+
+		if (logProbability != null) {
+			this.logProbability = BigDecimal.valueOf(Math.log10(this.probability.doubleValue()));
+		}
+
+		return this.logProbability;
 	}
 
 	/**
 	 * All current usages of this method are thread-safe, but since it's used in a multi-threaded way, this is a
 	 * defensive measure in case future usage changes are not thread-safe.
 	 * 
-	 * @param ratio
-	 *            the ratio to set
+	 * @param probability
+	 *            the probability to set
 	 */
-	public synchronized void setRatio(BigDecimal ratio) {
-		this.ratio = ratio;
+	public synchronized void setProbability(BigDecimal probability) {
+		this.probability = probability;
 	}
 }

@@ -213,7 +213,7 @@ public class MarkovModel {
 	}
 
 	protected void normalize(NGramIndexNode node, long parentCount) {
-		node.getTerminalInfo().setRatio(new BigDecimal(node.getTerminalInfo().getCount()).divide(new BigDecimal(
+		node.getTerminalInfo().setProbability(new BigDecimal(node.getTerminalInfo().getCount()).divide(new BigDecimal(
 				parentCount), MathContext.DECIMAL128));
 
 		Map<Character, NGramIndexNode> transitions = node.getTransitions();
