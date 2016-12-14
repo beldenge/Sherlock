@@ -19,11 +19,12 @@
 
 package com.ciphertool.sherlock.markov;
 
+import java.math.BigDecimal;
+
 public class TerminalInfo {
 	private int		level	= 0;
 	private long	count	= 0L;
-	// TODO: consider using BigDecimal for better precision but with potentially significant memory overhead
-	private double	ratio	= 0.0;
+	private BigDecimal	ratio;
 
 	/**
 	 * Default no-args constructor
@@ -37,6 +38,16 @@ public class TerminalInfo {
 	 */
 	public TerminalInfo(int level) {
 		this.level = level;
+	}
+	
+	/**
+	 * @param level
+	 *            the level to set
+	 * @param count
+	 *            the count to set
+	 */
+	public TerminalInfo(int level, long count) {
+		this.count = count;
 	}
 
 	public void increment() {
@@ -60,7 +71,7 @@ public class TerminalInfo {
 	/**
 	 * @return the ratio
 	 */
-	public double getRatio() {
+	public BigDecimal getRatio() {
 		return this.ratio;
 	}
 
@@ -71,7 +82,7 @@ public class TerminalInfo {
 	 * @param ratio
 	 *            the ratio to set
 	 */
-	public synchronized void setRatio(double ratio) {
+	public synchronized void setRatio(BigDecimal ratio) {
 		this.ratio = ratio;
 	}
 }

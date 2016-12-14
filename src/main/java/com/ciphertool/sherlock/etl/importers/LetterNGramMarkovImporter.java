@@ -40,6 +40,7 @@ import org.springframework.core.task.TaskExecutor;
 
 import com.ciphertool.sherlock.dto.ParseResults;
 import com.ciphertool.sherlock.markov.MarkovModel;
+import com.ciphertool.sherlock.markov.TerminalInfo;
 
 public class LetterNGramMarkovImporter implements MarkovImporter {
 	private static Logger			log									= LoggerFactory.getLogger(LetterNGramMarkovImporter.class);
@@ -81,7 +82,9 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 		log.info("Imported " + unique + " distinct letter N-Grams out of " + total + " total in "
 				+ (System.currentTimeMillis() - start) + "ms");
 
-		this.letterMarkovModel.postProcess(this.minCount, false, true);
+		letterMarkovModel.getRootNode().setTerminalInfo(new TerminalInfo(0, unique));
+		
+		this.letterMarkovModel.postProcess(this.minCount, true, true);
 
 		return this.letterMarkovModel;
 	}

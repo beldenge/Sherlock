@@ -19,6 +19,8 @@
 
 package com.ciphertool.sherlock.markov;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,19 +50,23 @@ public class MarkovModel {
 	 * A concurrent task for normalizing a Markov model node.
 	 */
 	protected class NormalizeTask implements Callable<Void> {
-		private NGramIndexNode node;
+		private NGramIndexNode	node;
+		private long			parentCount;
 
 		/**
 		 * @param node
 		 *            the NGramIndexNode to set
+		 * @param parentCount
+		 *            the parentCount to set
 		 */
-		public NormalizeTask(NGramIndexNode node) {
+		public NormalizeTask(NGramIndexNode node, long parentCount) {
 			this.node = node;
+			this.parentCount = parentCount;
 		}
 
 		@Override
 		public Void call() throws Exception {
-			normalize(this.node);
+			normalize(this.node, this.parentCount);
 
 			return null;
 		}
@@ -130,7 +136,8 @@ public class MarkovModel {
 		if (normalize) {
 			for (Map.Entry<Character, NGramIndexNode> entry : initialTransitions.entrySet()) {
 				if (entry.getValue() != null) {
-					task = new FutureTask<Void>(new NormalizeTask(entry.getValue()));
+					task = new FutureTask<Void>(new NormalizeTask(entry.getValue(),
+							rootNode.getTerminalInfo().getCount()));
 					futures.add(task);
 					this.taskExecutor.execute(task);
 				}
@@ -205,32 +212,18 @@ public class MarkovModel {
 		}
 	}
 
-	protected void normalize(NGramIndexNode node) {
+	protected void normalize(NGramIndexNode node, long parentCount) {
+		node.getTerminalInfo().setRatio(new BigDecimal(node.getTerminalInfo().getCount()).divide(new BigDecimal(
+				parentCount), MathContext.DECIMAL128));
+
 		Map<Character, NGramIndexNode> transitions = node.getTransitions();
 
 		if (transitions == null || transitions.isEmpty()) {
 			return;
 		}
 
-		Long total = 0L;
-		TerminalInfo terminalInfo;
-
 		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
-			terminalInfo = entry.getValue().getTerminalInfo();
-
-			if (entry.getValue() != null && terminalInfo != null) {
-				total += terminalInfo.getCount();
-			}
-		}
-
-		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
-			terminalInfo = entry.getValue().getTerminalInfo();
-
-			if (terminalInfo != null) {
-				terminalInfo.setRatio((double) terminalInfo.getCount() / (double) total);
-
-				normalize(entry.getValue());
-			}
+			normalize(entry.getValue(), node.getTerminalInfo().getCount());
 		}
 	}
 
