@@ -45,18 +45,33 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class XmlCorpusTransformer implements CorpusTransformer {
-	private static Logger			log				= LoggerFactory.getLogger(XmlCorpusTransformer.class);
+	private static Logger			log					= LoggerFactory.getLogger(XmlCorpusTransformer.class);
 
-	private static final String		INPUT_EXT		= ".xml";
-	private static final String		OUTPUT_EXT		= ".txt";
-	private static final String		SENTENCE_TAG	= "s";
-	private static final String		PUNC_TAG		= "c";
-	private static final String		TYPE_ATTR		= "c5";
-	private static final String		PUNC_ATTR_VALUE	= "PUN";
-	private static final String		NUM_ATTR_VALUE	= "CRD";
-	private static final String		WORD_TAG		= "w";
-	private static final String		NUMERIC			= "[0-9]+";
-	private static final Pattern	PATTERN			= Pattern.compile(NUMERIC);
+	private static final String		INPUT_EXT			= ".xml";
+	private static final String		OUTPUT_EXT			= ".txt";
+	private static final String		SENTENCE_TAG		= "s";
+	private static final String		PUNC_TAG			= "c";
+	private static final String		TYPE_ATTR			= "c5";
+	private static final String		PUNC_ATTR_VALUE		= "PUN";
+	private static final String		NUM_ATTR_VALUE		= "CRD";
+	private static final String		PERCENT_ATTR_VALUE	= "UNC";
+	private static final String		DOLLAR_ATTR_VALUE	= "NN0";
+	private static final String		WORD_TAG			= "w";
+
+	private static final String		NUMERIC				= "[0-9]+";
+	private static final Pattern	NUMBER_PATTERN		= Pattern.compile(NUMERIC);
+
+	private static final String		RANGE				= "[0-9]+–[0-9]+";
+	private static final Pattern	RANGE_PATTERN		= Pattern.compile(RANGE);
+
+	private static final String		PERCENT				= "[0-9]+%";
+	private static final Pattern	PERCENT_PATTERN		= Pattern.compile(PERCENT);
+
+	private static final String		DOLLAR				= "(\\$|£)[0-9]+";
+	private static final Pattern	DOLLAR_PATTERN		= Pattern.compile(DOLLAR);
+
+	private static final String		DECIMAL				= "[0-9]+\\.[0-9]+";
+	private static final Pattern	DECIMAL_PATTERN		= Pattern.compile(DECIMAL);
 
 	private String					corpusDirectory;
 	private String					outputDirectory;
@@ -129,7 +144,54 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 							sb.append(" ");
 						} else if (WORD_TAG.equals(item.getNodeName())
 								&& NUM_ATTR_VALUE.equals(item.getAttributes().getNamedItem(TYPE_ATTR).getTextContent())
-								&& PATTERN.matcher(item.getTextContent().replace(",", "").trim()).matches()) {
+								&& RANGE_PATTERN.matcher(item.getTextContent().replace(",", "").trim()).matches()) {
+							try {
+								String[] numberStrings = item.getTextContent().split("–");
+
+								for (int k = 0; k < numberStrings.length; k++) {
+									number = Integer.parseInt(numberStrings[k].replace(",", "").trim());
+
+									if (k > 0) {
+										sb.append("to ");
+									}
+
+									sb.append(NumberToWords.convert(number) + " ");
+								}
+							} catch (NumberFormatException nfe) {
+								log.debug("Unable to format number as integer: {}", item.getTextContent().replace(",", "").trim());
+							}
+						} else if (WORD_TAG.equals(item.getNodeName())
+								&& PERCENT_ATTR_VALUE.equals(item.getAttributes().getNamedItem(TYPE_ATTR).getTextContent())
+								&& PERCENT_PATTERN.matcher(item.getTextContent().replace(",", "").trim()).matches()) {
+							try {
+								/*
+								 * If the number cannot be reduced to an integer, then it's not worth converting into
+								 * words
+								 */
+								number = Integer.parseInt(item.getTextContent().replace(",", "").trim().substring(0, item.getTextContent().replace(",", "").trim().length()
+										- 1));
+
+								sb.append(NumberToWords.convert(number) + " percent ");
+							} catch (NumberFormatException nfe) {
+								log.debug("Unable to format number as integer: {}", item.getTextContent().replace(",", "").trim());
+							}
+						} else if (WORD_TAG.equals(item.getNodeName())
+								&& DOLLAR_ATTR_VALUE.equals(item.getAttributes().getNamedItem(TYPE_ATTR).getTextContent())
+								&& DOLLAR_PATTERN.matcher(item.getTextContent().replace(",", "").trim()).matches()) {
+							try {
+								/*
+								 * If the number cannot be reduced to an integer, then it's not worth converting into
+								 * words
+								 */
+								number = Integer.parseInt(item.getTextContent().replace(",", "").trim().substring(1));
+
+								sb.append(NumberToWords.convert(number) + " dollars ");
+							} catch (NumberFormatException nfe) {
+								log.debug("Unable to format number as integer: {}", item.getTextContent().replace(",", "").trim());
+							}
+						} else if (WORD_TAG.equals(item.getNodeName())
+								&& NUM_ATTR_VALUE.equals(item.getAttributes().getNamedItem(TYPE_ATTR).getTextContent())
+								&& NUMBER_PATTERN.matcher(item.getTextContent().replace(",", "").trim()).matches()) {
 							try {
 								/*
 								 * If the number cannot be reduced to an integer, then it's not worth converting into
@@ -142,7 +204,7 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 								log.debug("Unable to format number as integer: {}", item.getTextContent().replace(",", "").trim());
 							}
 						} else {
-							sb.append(item.getTextContent().replace("'", ""));
+							sb.append(item.getTextContent().replace("'", "").replace("-", " "));
 						}
 
 						if (WORD_TAG.equals(item.getNodeName())) {
