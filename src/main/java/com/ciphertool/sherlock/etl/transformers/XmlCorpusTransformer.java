@@ -49,6 +49,9 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 
 	private static final String		INPUT_EXT			= ".xml";
 	private static final String		OUTPUT_EXT			= ".txt";
+	private static final String		HEAD_TAG			= "head";
+	private static final String		ITEM_TAG			= "item";
+	private static final String		LABEL_TAG			= "label";
 	private static final String		SENTENCE_TAG		= "s";
 	private static final String		PUNC_TAG			= "c";
 	private static final String		TYPE_ATTR			= "c5";
@@ -69,9 +72,6 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 
 	private static final String		DOLLAR				= "(\\$|£)[0-9]+";
 	private static final Pattern	DOLLAR_PATTERN		= Pattern.compile(DOLLAR);
-
-	private static final String		DECIMAL				= "[0-9]+\\.[0-9]+";
-	private static final Pattern	DECIMAL_PATTERN		= Pattern.compile(DECIMAL);
 
 	private String					corpusDirectory;
 	private String					outputDirectory;
@@ -120,28 +120,36 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 
 			long wordCount = 0L;
 			StringBuilder sb = new StringBuilder();
+			StringBuilder sentenceSb;
 
 			try {
 				DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 				Document doc = docBuilder.parse(new File(this.path.toString()));
 				doc.getDocumentElement().normalize();
 
-				// TODO: Preserve punctuation so we can avoid adding n-grams which span sentences
-				// TODO: filter out text that contains numbers or all caps
 				NodeList sentences = doc.getElementsByTagName(SENTENCE_TAG);
 				NodeList wordsAndPunc;
 				Node item;
 				int number;
+				String parentNodeName;
 
 				for (int i = 0; i < sentences.getLength(); i++) {
+					parentNodeName = sentences.item(i).getParentNode().getNodeName();
+
+					if (HEAD_TAG.equals(parentNodeName) || ITEM_TAG.equals(parentNodeName)
+							|| LABEL_TAG.equals(parentNodeName)) {
+						continue;
+					}
+
 					wordsAndPunc = sentences.item(i).getChildNodes();
+					sentenceSb = new StringBuilder();
 
 					for (int j = 0; j < wordsAndPunc.getLength(); j++) {
 						item = wordsAndPunc.item(j);
 
 						if (PUNC_TAG.equals(item.getNodeName())
 								&& PUNC_ATTR_VALUE.equals(item.getAttributes().getNamedItem(TYPE_ATTR).getTextContent())) {
-							sb.append(" ");
+							sentenceSb.append(" ");
 						} else if (WORD_TAG.equals(item.getNodeName())
 								&& NUM_ATTR_VALUE.equals(item.getAttributes().getNamedItem(TYPE_ATTR).getTextContent())
 								&& RANGE_PATTERN.matcher(item.getTextContent().replace(",", "").trim()).matches()) {
@@ -152,10 +160,10 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 									number = Integer.parseInt(numberStrings[k].replace(",", "").trim());
 
 									if (k > 0) {
-										sb.append("to ");
+										sentenceSb.append("to ");
 									}
 
-									sb.append(NumberToWords.convert(number) + " ");
+									sentenceSb.append(NumberToWords.convert(number) + " ");
 								}
 							} catch (NumberFormatException nfe) {
 								log.debug("Unable to format number as integer: {}", item.getTextContent().replace(",", "").trim());
@@ -171,7 +179,7 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 								number = Integer.parseInt(item.getTextContent().replace(",", "").trim().substring(0, item.getTextContent().replace(",", "").trim().length()
 										- 1));
 
-								sb.append(NumberToWords.convert(number) + " percent ");
+								sentenceSb.append(NumberToWords.convert(number) + " percent ");
 							} catch (NumberFormatException nfe) {
 								log.debug("Unable to format number as integer: {}", item.getTextContent().replace(",", "").trim());
 							}
@@ -185,7 +193,7 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 								 */
 								number = Integer.parseInt(item.getTextContent().replace(",", "").trim().substring(1));
 
-								sb.append(NumberToWords.convert(number) + " dollars ");
+								sentenceSb.append(NumberToWords.convert(number) + " dollars ");
 							} catch (NumberFormatException nfe) {
 								log.debug("Unable to format number as integer: {}", item.getTextContent().replace(",", "").trim());
 							}
@@ -199,12 +207,12 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 								 */
 								number = Integer.parseInt(item.getTextContent().replace(",", "").trim());
 
-								sb.append(NumberToWords.convert(number) + " ");
+								sentenceSb.append(NumberToWords.convert(number) + " ");
 							} catch (NumberFormatException nfe) {
 								log.debug("Unable to format number as integer: {}", item.getTextContent().replace(",", "").trim());
 							}
 						} else {
-							sb.append(item.getTextContent().replace("'", "").replace("-", " "));
+							sentenceSb.append(item.getTextContent().replace("'", "").replace("’", "").replace("‘", "").replace("-", " "));
 						}
 
 						if (WORD_TAG.equals(item.getNodeName())) {
@@ -212,7 +220,9 @@ public class XmlCorpusTransformer implements CorpusTransformer {
 						}
 					}
 
-					sb.append("\n");
+					if (sentenceSb.toString().split("\\s+").length > 1) {
+						sb.append(sentenceSb.toString() + "\n");
+					}
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);
