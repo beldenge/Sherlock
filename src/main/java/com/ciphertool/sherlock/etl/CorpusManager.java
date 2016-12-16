@@ -32,7 +32,8 @@ public class CorpusManager {
 	private static Logger				log	= LoggerFactory.getLogger(CorpusManager.class);
 
 	private static BeanFactory			beanFactory;
-	private static CorpusTransformer	corpusTransformer;
+	private static CorpusTransformer	xmlCorpusTransformer;
+	private static CorpusTransformer	textCorpusTransformer;
 
 	/**
 	 * Bootstraps the Spring application context.
@@ -42,7 +43,8 @@ public class CorpusManager {
 
 		log.info("Spring application context created successfully!");
 
-		corpusTransformer = (CorpusTransformer) beanFactory.getBean("xmlCorpusTransformer");
+		textCorpusTransformer = (CorpusTransformer) beanFactory.getBean("textCorpusTransformer");
+		xmlCorpusTransformer = (CorpusTransformer) beanFactory.getBean("xmlCorpusTransformer");
 	}
 
 	/**
@@ -56,6 +58,7 @@ public class CorpusManager {
 	public static void main(String[] args) throws ParserConfigurationException {
 		setUp();
 
-		corpusTransformer.transformCorpus();
+		textCorpusTransformer.transformCorpus();
+		xmlCorpusTransformer.transformCorpus();
 	}
 }

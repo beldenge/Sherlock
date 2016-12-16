@@ -47,7 +47,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 	private static final String		EXTENSION							= ".txt";
 	private static final String		NON_ALPHA							= ".*[^a-z].*";
-	private static final String		WHITESPACE_AND_INTER_SENTENCE_PUNC	= "[\\s-,;()`'\"]";
+	private static final String		WHITESPACE_AND_INTRA_SENTENCE_PUNC	= "[\\s-,;()`'\"]";
 	private static final Pattern	PATTERN								= Pattern.compile(NON_ALPHA);
 
 	private String					corpusDirectory;
@@ -113,18 +113,23 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 			try {
 				String content = new String(Files.readAllBytes(this.path));
+				String sentence;
 
-				content = content.toLowerCase().replaceAll(WHITESPACE_AND_INTER_SENTENCE_PUNC, "");
+				String[] sentences = content.split("(\n|\r|\r\n)+");
 
-				for (int i = 0; i < content.length(); i++) {
-					String nGramString = content.substring(i, i + Math.min(order, content.length() - i));
+				for (int i = 0; i < sentences.length; i++) {
+					sentence = sentences[i].toLowerCase().replaceAll(WHITESPACE_AND_INTRA_SENTENCE_PUNC, "");
 
-					if (PATTERN.matcher(nGramString).matches()) {
-						continue;
+					for (int j = 0; j < sentence.length(); j++) {
+						String nGramString = sentence.substring(j, j + Math.min(order, sentence.length() - j));
+
+						if (PATTERN.matcher(nGramString).matches()) {
+							continue;
+						}
+
+						unique += (letterMarkovModel.addLetterTransition(nGramString) ? 1 : 0);
+						total++;
 					}
-
-					unique += (letterMarkovModel.addLetterTransition(nGramString) ? 1 : 0);
-					total++;
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);

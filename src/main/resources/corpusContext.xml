@@ -25,7 +25,13 @@ You should have received a copy of the GNU General Public License along with She
 
 	<bean id="xmlCorpusTransformer" class="com.ciphertool.sherlock.etl.transformers.XmlCorpusTransformer">
 		<property name="taskExecutor" ref="taskExecutor" />
-		<property name="corpusDirectory" value="${corpus.input.directory}" />
+		<property name="corpusDirectory" value="${corpus.xml.input.directory}" />
+		<property name="outputDirectory" value="${corpus.output.directory}" />
+	</bean>
+
+	<bean id="textCorpusTransformer" class="com.ciphertool.sherlock.etl.transformers.TextCorpusTransformer">
+		<property name="taskExecutor" ref="taskExecutor" />
+		<property name="corpusDirectory" value="${corpus.text.input.directory}" />
 		<property name="outputDirectory" value="${corpus.output.directory}" />
 	</bean>
 
