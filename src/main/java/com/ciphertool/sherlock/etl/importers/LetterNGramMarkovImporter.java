@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -40,6 +41,7 @@ import org.springframework.core.task.TaskExecutor;
 
 import com.ciphertool.sherlock.dto.ParseResults;
 import com.ciphertool.sherlock.markov.MarkovModel;
+import com.ciphertool.sherlock.markov.NGramIndexNode;
 import com.ciphertool.sherlock.markov.TerminalInfo;
 
 public class LetterNGramMarkovImporter implements MarkovImporter {
@@ -85,6 +87,11 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 		letterMarkovModel.getRootNode().setTerminalInfo(new TerminalInfo(0, total));
 
 		this.letterMarkovModel.postProcess(this.minCount, true, true);
+
+		for (Map.Entry<Character, NGramIndexNode> entry : this.letterMarkovModel.getRootNode().getTransitions().entrySet()) {
+			log.info(entry.getKey().toString() + ": "
+					+ entry.getValue().getTerminalInfo().getProbability().toString().substring(0, 7));
+		}
 
 		return this.letterMarkovModel;
 	}
