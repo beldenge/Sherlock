@@ -20,12 +20,15 @@
 package com.ciphertool.sherlock.etl.importers;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -39,6 +42,8 @@ import org.springframework.core.task.TaskExecutor;
 
 import com.ciphertool.sherlock.dto.ParseResults;
 import com.ciphertool.sherlock.markov.MarkovModel;
+import com.ciphertool.sherlock.markov.NGramIndexNode;
+import com.ciphertool.sherlock.markov.TerminalInfo;
 
 public class WordNGramMarkovImporter implements MarkovImporter {
 	private static Logger		log							= LoggerFactory.getLogger(WordNGramMarkovImporter.class);
@@ -79,9 +84,83 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 		log.info("Imported " + unique + " distinct word N-Grams out of " + total + " total in "
 				+ (System.currentTimeMillis() - start) + "ms");
 
+		this.wordMarkovModel.getRootNode().setTerminalInfo(new TerminalInfo(0, total));
+
 		this.wordMarkovModel.postProcess(this.minCount, false, false);
 
+		// Add one for unknown words
+		normalize(this.wordMarkovModel);
+
 		return this.wordMarkovModel;
+	}
+
+	/**
+	 * A concurrent task for normalizing a Markov model node.
+	 */
+	protected class NormalizeTask implements Callable<Void> {
+		private NGramIndexNode	node;
+		private long			total;
+
+		/**
+		 * @param node
+		 *            the NGramIndexNode to set
+		 * @param total
+		 *            the total to set
+		 */
+		public NormalizeTask(NGramIndexNode node, long total) {
+			this.node = node;
+			this.total = total;
+		}
+
+		@Override
+		public Void call() throws Exception {
+			normalizeTerminal(this.node, this.total);
+
+			return null;
+		}
+	}
+
+	protected void normalizeTerminal(NGramIndexNode node, long total) {
+		if (node.getTerminalInfo() != null) {
+			node.getTerminalInfo().setProbability(new BigDecimal(
+					node.getTerminalInfo().getCount()).divide(new BigDecimal(total), MathContext.DECIMAL128));
+
+			return;
+		}
+
+		Map<Character, NGramIndexNode> transitions = node.getTransitions();
+
+		if (transitions == null || transitions.isEmpty()) {
+			return;
+		}
+
+		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
+			normalizeTerminal(entry.getValue(), total);
+		}
+	}
+
+	protected void normalize(MarkovModel markovModel) {
+		List<FutureTask<Void>> futures = new ArrayList<FutureTask<Void>>(26);
+		FutureTask<Void> task;
+
+		for (Map.Entry<Character, NGramIndexNode> entry : markovModel.getRootNode().getTransitions().entrySet()) {
+			if (entry.getValue() != null) {
+				task = new FutureTask<Void>(new NormalizeTask(entry.getValue(),
+						markovModel.getRootNode().getTerminalInfo().getCount() + 1));
+				futures.add(task);
+				this.taskExecutor.execute(task);
+			}
+		}
+
+		for (FutureTask<Void> future : futures) {
+			try {
+				future.get();
+			} catch (InterruptedException ie) {
+				log.error("Caught InterruptedException while waiting for NormalizeTask ", ie);
+			} catch (ExecutionException ee) {
+				log.error("Caught ExecutionException while waiting for NormalizeTask ", ee);
+			}
+		}
 	}
 
 	/**
