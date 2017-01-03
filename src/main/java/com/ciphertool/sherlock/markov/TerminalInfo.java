@@ -104,6 +104,13 @@ public class TerminalInfo {
 	}
 
 	/**
+	 * @return the conditionalProbability
+	 */
+	public BigDecimal getConditionalProbability() {
+		return conditionalProbability;
+	}
+
+	/**
 	 * All current usages of this method are thread-safe, but since it's used in a multi-threaded way, this is a
 	 * defensive measure in case future usage changes are not thread-safe.
 	 * 
@@ -112,12 +119,5 @@ public class TerminalInfo {
 	 */
 	public synchronized void setConditionalProbability(BigDecimal conditionalProbability) {
 		this.conditionalProbability = conditionalProbability;
-	}
-
-	/**
-	 * @return the conditionalProbability
-	 */
-	public BigDecimal getConditionalProbability() {
-		return conditionalProbability;
 	}
 }
