@@ -74,8 +74,7 @@ public class WordListImporterImplTest {
 
 		Field persistenceBatchSizeField = ReflectionUtils.findField(WordListImporterImpl.class, "persistenceBatchSize");
 		ReflectionUtils.makeAccessible(persistenceBatchSizeField);
-		int persistenceBatchSizeFromObject = (int) ReflectionUtils.getField(persistenceBatchSizeField,
-				wordListImporterImpl);
+		int persistenceBatchSizeFromObject = (int) ReflectionUtils.getField(persistenceBatchSizeField, wordListImporterImpl);
 
 		assertEquals(persistenceBatchSizeToSet, persistenceBatchSizeFromObject);
 	}
@@ -89,8 +88,7 @@ public class WordListImporterImplTest {
 
 		Field fileParserField = ReflectionUtils.findField(WordListImporterImpl.class, "partOfSpeechFileParser");
 		ReflectionUtils.makeAccessible(fileParserField);
-		FileParser<Word> fileParserFromObject = (FileParser<Word>) ReflectionUtils.getField(fileParserField,
-				wordListImporterImpl);
+		FileParser<Word> fileParserFromObject = (FileParser<Word>) ReflectionUtils.getField(fileParserField, wordListImporterImpl);
 
 		assertSame(fileParserToSet, fileParserFromObject);
 	}
@@ -103,8 +101,7 @@ public class WordListImporterImplTest {
 
 		Field concurrencyBatchSizeField = ReflectionUtils.findField(WordListImporterImpl.class, "concurrencyBatchSize");
 		ReflectionUtils.makeAccessible(concurrencyBatchSizeField);
-		int concurrencyBatchSizeFromObject = (int) ReflectionUtils.getField(concurrencyBatchSizeField,
-				wordListImporterImpl);
+		int concurrencyBatchSizeFromObject = (int) ReflectionUtils.getField(concurrencyBatchSizeField, wordListImporterImpl);
 
 		assertEquals(concurrencyBatchSizeToSet, concurrencyBatchSizeFromObject);
 	}
@@ -117,8 +114,7 @@ public class WordListImporterImplTest {
 
 		Field taskExecutorField = ReflectionUtils.findField(WordListImporterImpl.class, "taskExecutor");
 		ReflectionUtils.makeAccessible(taskExecutorField);
-		TaskExecutor taskExecutorFromObject = (TaskExecutor) ReflectionUtils.getField(taskExecutorField,
-				wordListImporterImpl);
+		TaskExecutor taskExecutorFromObject = (TaskExecutor) ReflectionUtils.getField(taskExecutorField, wordListImporterImpl);
 
 		assertEquals(taskExecutorToSet, taskExecutorFromObject);
 	}
@@ -152,8 +148,7 @@ public class WordListImporterImplTest {
 
 		Field rowCountField = ReflectionUtils.findField(WordListImporterImpl.class, "rowCount");
 		ReflectionUtils.makeAccessible(rowCountField);
-		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils
-				.getField(rowCountField, wordListImporterImpl);
+		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowCountField, wordListImporterImpl);
 
 		assertEquals(0, rowCountFromObject.intValue());
 
@@ -203,8 +198,7 @@ public class WordListImporterImplTest {
 
 		Field rowCountField = ReflectionUtils.findField(WordListImporterImpl.class, "rowCount");
 		ReflectionUtils.makeAccessible(rowCountField);
-		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils
-				.getField(rowCountField, wordListImporterImpl);
+		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowCountField, wordListImporterImpl);
 
 		assertEquals(0, rowCountFromObject.intValue());
 
@@ -245,8 +239,7 @@ public class WordListImporterImplTest {
 
 		Field rowCountField = ReflectionUtils.findField(WordListImporterImpl.class, "rowCount");
 		ReflectionUtils.makeAccessible(rowCountField);
-		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils
-				.getField(rowCountField, wordListImporterImpl);
+		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowCountField, wordListImporterImpl);
 
 		assertEquals(0, rowCountFromObject.intValue());
 
@@ -286,8 +279,7 @@ public class WordListImporterImplTest {
 
 		Field rowCountField = ReflectionUtils.findField(WordListImporterImpl.class, "rowCount");
 		ReflectionUtils.makeAccessible(rowCountField);
-		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils
-				.getField(rowCountField, wordListImporterImpl);
+		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowCountField, wordListImporterImpl);
 
 		assertEquals(0, rowCountFromObject.intValue());
 
@@ -313,8 +305,7 @@ public class WordListImporterImplTest {
 
 		Field rowCountField = ReflectionUtils.findField(WordListImporterImpl.class, "rowCount");
 		ReflectionUtils.makeAccessible(rowCountField);
-		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils
-				.getField(rowCountField, wordListImporterImpl);
+		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowCountField, wordListImporterImpl);
 
 		assertEquals(0, rowCountFromObject.intValue());
 
@@ -368,8 +359,7 @@ public class WordListImporterImplTest {
 
 		Field rowCountField = ReflectionUtils.findField(WordListImporterImpl.class, "rowCount");
 		ReflectionUtils.makeAccessible(rowCountField);
-		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils
-				.getField(rowCountField, wordListImporterImpl);
+		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowCountField, wordListImporterImpl);
 
 		assertEquals(0, rowCountFromObject.intValue());
 
@@ -412,8 +402,7 @@ public class WordListImporterImplTest {
 
 		Field rowCountField = ReflectionUtils.findField(WordListImporterImpl.class, "rowCount");
 		ReflectionUtils.makeAccessible(rowCountField);
-		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils
-				.getField(rowCountField, wordListImporterImpl);
+		AtomicInteger rowCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowCountField, wordListImporterImpl);
 
 		assertEquals(0, rowCountFromObject.intValue());
 

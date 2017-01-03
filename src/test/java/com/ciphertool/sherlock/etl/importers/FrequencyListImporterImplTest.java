@@ -73,11 +73,9 @@ public class FrequencyListImporterImplTest {
 		FrequencyListImporterImpl frequencyListImporterImpl = new FrequencyListImporterImpl();
 		frequencyListImporterImpl.setPersistenceBatchSize(persistenceBatchSizeToSet);
 
-		Field persistenceBatchSizeField = ReflectionUtils.findField(FrequencyListImporterImpl.class,
-				"persistenceBatchSize");
+		Field persistenceBatchSizeField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "persistenceBatchSize");
 		ReflectionUtils.makeAccessible(persistenceBatchSizeField);
-		int persistenceBatchSizeFromObject = (int) ReflectionUtils.getField(persistenceBatchSizeField,
-				frequencyListImporterImpl);
+		int persistenceBatchSizeFromObject = (int) ReflectionUtils.getField(persistenceBatchSizeField, frequencyListImporterImpl);
 
 		assertEquals(persistenceBatchSizeToSet, persistenceBatchSizeFromObject);
 	}
@@ -91,8 +89,7 @@ public class FrequencyListImporterImplTest {
 
 		Field fileParserField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "frequencyFileParser");
 		ReflectionUtils.makeAccessible(fileParserField);
-		FileParser<Word> fileParserFromObject = (FileParser<Word>) ReflectionUtils.getField(fileParserField,
-				frequencyListImporterImpl);
+		FileParser<Word> fileParserFromObject = (FileParser<Word>) ReflectionUtils.getField(fileParserField, frequencyListImporterImpl);
 
 		assertSame(fileParserToSet, fileParserFromObject);
 	}
@@ -103,11 +100,9 @@ public class FrequencyListImporterImplTest {
 		FrequencyListImporterImpl frequencyListImporterImpl = new FrequencyListImporterImpl();
 		frequencyListImporterImpl.setConcurrencyBatchSize(concurrencyBatchSizeToSet);
 
-		Field concurrencyBatchSizeField = ReflectionUtils.findField(FrequencyListImporterImpl.class,
-				"concurrencyBatchSize");
+		Field concurrencyBatchSizeField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "concurrencyBatchSize");
 		ReflectionUtils.makeAccessible(concurrencyBatchSizeField);
-		int concurrencyBatchSizeFromObject = (int) ReflectionUtils.getField(concurrencyBatchSizeField,
-				frequencyListImporterImpl);
+		int concurrencyBatchSizeFromObject = (int) ReflectionUtils.getField(concurrencyBatchSizeField, frequencyListImporterImpl);
 
 		assertEquals(concurrencyBatchSizeToSet, concurrencyBatchSizeFromObject);
 	}
@@ -120,8 +115,7 @@ public class FrequencyListImporterImplTest {
 
 		Field taskExecutorField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "taskExecutor");
 		ReflectionUtils.makeAccessible(taskExecutorField);
-		TaskExecutor taskExecutorFromObject = (TaskExecutor) ReflectionUtils.getField(taskExecutorField,
-				frequencyListImporterImpl);
+		TaskExecutor taskExecutorFromObject = (TaskExecutor) ReflectionUtils.getField(taskExecutorField, frequencyListImporterImpl);
 
 		assertEquals(taskExecutorToSet, taskExecutorFromObject);
 	}
@@ -155,15 +149,13 @@ public class FrequencyListImporterImplTest {
 
 		Field rowUpdateCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowUpdateCount");
 		ReflectionUtils.makeAccessible(rowUpdateCountField);
-		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowUpdateCountFromObject.intValue());
 
 		Field rowInsertCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowInsertCount");
 		ReflectionUtils.makeAccessible(rowInsertCountField);
-		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowInsertCountFromObject.intValue());
 
@@ -206,10 +198,8 @@ public class FrequencyListImporterImplTest {
 		assertEquals(100, wordFromDatabase1.getFrequencyWeight());
 		assertEquals(200, wordFromDatabase2.getFrequencyWeight());
 
-		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
-		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
+		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(2, rowUpdateCountFromObject.intValue());
 		assertEquals(2, rowInsertCountFromObject.intValue());
@@ -234,15 +224,13 @@ public class FrequencyListImporterImplTest {
 
 		Field rowUpdateCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowUpdateCount");
 		ReflectionUtils.makeAccessible(rowUpdateCountField);
-		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowUpdateCountFromObject.intValue());
 
 		Field rowInsertCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowInsertCount");
 		ReflectionUtils.makeAccessible(rowInsertCountField);
-		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowInsertCountFromObject.intValue());
 
@@ -281,7 +269,7 @@ public class FrequencyListImporterImplTest {
 		when(wordDaoMock.findByWordString(eq("belden"))).thenReturn(Arrays.asList(wordFromDatabase2));
 		when(wordDaoMock.findByWordString(eq("is"))).thenReturn(
 
-		Arrays.asList(wordFromDatabase3));
+				Arrays.asList(wordFromDatabase3));
 		when(wordDaoMock.findByWordString(eq("super"))).thenReturn(null);
 		when(wordDaoMock.findByWordString(eq("seriously"))).thenReturn(null);
 		when(wordDaoMock.findByWordString(eq("awesome"))).thenReturn(null);
@@ -293,10 +281,8 @@ public class FrequencyListImporterImplTest {
 		assertEquals(200, wordFromDatabase2.getFrequencyWeight());
 		assertEquals(300, wordFromDatabase3.getFrequencyWeight());
 
-		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
-		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
+		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(3, rowUpdateCountFromObject.intValue());
 		assertEquals(2, rowInsertCountFromObject.intValue());
@@ -313,15 +299,13 @@ public class FrequencyListImporterImplTest {
 
 		Field rowUpdateCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowUpdateCount");
 		ReflectionUtils.makeAccessible(rowUpdateCountField);
-		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowUpdateCountFromObject.intValue());
 
 		Field rowInsertCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowInsertCount");
 		ReflectionUtils.makeAccessible(rowInsertCountField);
-		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowInsertCountFromObject.intValue());
 
@@ -342,8 +326,7 @@ public class FrequencyListImporterImplTest {
 		Word wordFromDatabase1 = new Word("george", PartOfSpeechType.NOUN);
 		Word wordFromDatabase2 = new Word("belden", PartOfSpeechType.NOUN);
 
-		when(wordDaoMock.findByWordString(anyString())).thenReturn(Arrays.asList(wordFromDatabase1),
-				Arrays.asList(wordFromDatabase2), null, null);
+		when(wordDaoMock.findByWordString(anyString())).thenReturn(Arrays.asList(wordFromDatabase1), Arrays.asList(wordFromDatabase2), null, null);
 
 		frequencyListImporterImpl.importWord(word1, insertBatch, updateBatch);
 
@@ -373,10 +356,8 @@ public class FrequencyListImporterImplTest {
 		assertTrue(updateBatch.isEmpty());
 		assertTrue(insertBatch.isEmpty());
 
-		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
-		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
+		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(100, wordFromDatabase1.getFrequencyWeight());
 		assertEquals(200, wordFromDatabase2.getFrequencyWeight());
@@ -391,15 +372,13 @@ public class FrequencyListImporterImplTest {
 
 		Field rowUpdateCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowUpdateCount");
 		ReflectionUtils.makeAccessible(rowUpdateCountField);
-		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowUpdateCountFromObject.intValue());
 
 		Field rowInsertCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowInsertCount");
 		ReflectionUtils.makeAccessible(rowInsertCountField);
-		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowInsertCountFromObject.intValue());
 
@@ -415,10 +394,8 @@ public class FrequencyListImporterImplTest {
 
 		frequencyListImporterImpl.importWord(null, insertBatch, updateBatch);
 
-		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
-		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
+		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertTrue(updateBatch.isEmpty());
 		assertTrue(insertBatch.isEmpty());
@@ -434,15 +411,13 @@ public class FrequencyListImporterImplTest {
 
 		Field rowUpdateCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowUpdateCount");
 		ReflectionUtils.makeAccessible(rowUpdateCountField);
-		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowUpdateCountFromObject.intValue());
 
 		Field rowInsertCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowInsertCount");
 		ReflectionUtils.makeAccessible(rowInsertCountField);
-		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowInsertCountFromObject.intValue());
 
@@ -463,8 +438,7 @@ public class FrequencyListImporterImplTest {
 		Word wordFromDatabase1 = new Word("george", PartOfSpeechType.NOUN);
 		Word wordFromDatabase2 = new Word("belden", PartOfSpeechType.NOUN);
 
-		when(wordDaoMock.findByWordString(anyString())).thenReturn(Arrays.asList(wordFromDatabase1),
-				Arrays.asList(wordFromDatabase2), null, null);
+		when(wordDaoMock.findByWordString(anyString())).thenReturn(Arrays.asList(wordFromDatabase1), Arrays.asList(wordFromDatabase2), null, null);
 
 		frequencyListImporterImpl.importWord(word1, insertBatch, updateBatch);
 
@@ -494,10 +468,8 @@ public class FrequencyListImporterImplTest {
 		assertEquals(2, updateBatch.size());
 		assertEquals(2, insertBatch.size());
 
-		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
-		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
+		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(100, wordFromDatabase1.getFrequencyWeight());
 		assertEquals(200, wordFromDatabase2.getFrequencyWeight());
@@ -525,15 +497,13 @@ public class FrequencyListImporterImplTest {
 
 		Field rowUpdateCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowUpdateCount");
 		ReflectionUtils.makeAccessible(rowUpdateCountField);
-		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowUpdateCountFromObject.intValue());
 
 		Field rowInsertCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowInsertCount");
 		ReflectionUtils.makeAccessible(rowInsertCountField);
-		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowInsertCountFromObject.intValue());
 
@@ -565,10 +535,8 @@ public class FrequencyListImporterImplTest {
 		assertEquals(100, wordFromDatabase1.getFrequencyWeight());
 		assertEquals(200, wordFromDatabase2.getFrequencyWeight());
 
-		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
-		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
+		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(2, rowUpdateCountFromObject.intValue());
 		assertEquals(2, rowInsertCountFromObject.intValue());
@@ -600,15 +568,13 @@ public class FrequencyListImporterImplTest {
 
 		Field rowUpdateCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowUpdateCount");
 		ReflectionUtils.makeAccessible(rowUpdateCountField);
-		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowUpdateCountFromObject.intValue());
 
 		Field rowInsertCountField = ReflectionUtils.findField(FrequencyListImporterImpl.class, "rowInsertCount");
 		ReflectionUtils.makeAccessible(rowInsertCountField);
-		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		AtomicInteger rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(0, rowInsertCountFromObject.intValue());
 
@@ -631,7 +597,7 @@ public class FrequencyListImporterImplTest {
 		when(wordDaoMock.findByWordString(eq("belden"))).thenReturn(Arrays.asList(wordFromDatabase2));
 		when(wordDaoMock.findByWordString(eq("is"))).thenReturn(
 
-		Arrays.asList(wordFromDatabase3));
+				Arrays.asList(wordFromDatabase3));
 		when(wordDaoMock.findByWordString(eq("super"))).thenReturn(null);
 		when(wordDaoMock.findByWordString(eq("seriously"))).thenReturn(null);
 		when(wordDaoMock.findByWordString(eq("awesome"))).thenReturn(null);
@@ -646,10 +612,8 @@ public class FrequencyListImporterImplTest {
 		assertEquals(200, wordFromDatabase2.getFrequencyWeight());
 		assertEquals(300, wordFromDatabase3.getFrequencyWeight());
 
-		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField,
-				frequencyListImporterImpl);
-		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField,
-				frequencyListImporterImpl);
+		rowUpdateCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowUpdateCountField, frequencyListImporterImpl);
+		rowInsertCountFromObject = (AtomicInteger) ReflectionUtils.getField(rowInsertCountField, frequencyListImporterImpl);
 
 		assertEquals(3, rowUpdateCountFromObject.intValue());
 		assertEquals(3, rowInsertCountFromObject.intValue());

@@ -76,7 +76,7 @@ public class WordTest {
 
 		assertSame(PartOfSpeechType.NOUN, word.getPartOfSpeech());
 	}
-	
+
 	@Test
 	public void testSetFrequencyWeight() {
 		int frequencyWeightToSet = 50;
