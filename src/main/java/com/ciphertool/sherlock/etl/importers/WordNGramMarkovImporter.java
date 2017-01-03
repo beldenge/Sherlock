@@ -88,7 +88,6 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 
 		this.wordMarkovModel.postProcess(this.minCount, false, false);
 
-		// Add one for unknown words
 		normalize(this.wordMarkovModel);
 
 		return this.wordMarkovModel;
@@ -145,6 +144,7 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 
 		for (Map.Entry<Character, NGramIndexNode> entry : markovModel.getRootNode().getTransitions().entrySet()) {
 			if (entry.getValue() != null) {
+				// Add one for unknown words
 				task = new FutureTask<Void>(new NormalizeTask(entry.getValue(),
 						markovModel.getRootNode().getTerminalInfo().getCount() + 1));
 				futures.add(task);
