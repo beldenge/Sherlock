@@ -85,7 +85,7 @@ public class TerminalInfo {
 			return BigDecimal.ZERO;
 		}
 
-		if (logProbability != null) {
+		if (logProbability == null) {
 			this.logProbability = BigDecimal.valueOf(Math.log10(this.probability.doubleValue()));
 		}
 
