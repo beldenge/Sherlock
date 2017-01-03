@@ -15,6 +15,7 @@ public class ParseResults {
 	 */
 	public ParseResults(long total, long orderTotal, long unique) {
 		this.total = total;
+		this.orderTotal = orderTotal;
 		this.unique = unique;
 	}
 
