@@ -26,6 +26,7 @@ public class TerminalInfo {
 	private long		count	= 0L;
 	private BigDecimal	probability;
 	private BigDecimal	logProbability;
+	private BigDecimal	conditionalProbability;
 
 	/**
 	 * Default no-args constructor
@@ -100,5 +101,23 @@ public class TerminalInfo {
 	 */
 	public synchronized void setProbability(BigDecimal probability) {
 		this.probability = probability;
+	}
+
+	/**
+	 * All current usages of this method are thread-safe, but since it's used in a multi-threaded way, this is a
+	 * defensive measure in case future usage changes are not thread-safe.
+	 * 
+	 * @param conditionalProbability
+	 *            the conditionalProbability to set
+	 */
+	public synchronized void setConditionalProbability(BigDecimal conditionalProbability) {
+		this.conditionalProbability = conditionalProbability;
+	}
+
+	/**
+	 * @return the conditionalProbability
+	 */
+	public BigDecimal getConditionalProbability() {
+		return conditionalProbability;
 	}
 }

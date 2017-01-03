@@ -20,6 +20,8 @@
 package com.ciphertool.sherlock.etl.importers;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -93,7 +95,79 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 					+ entry.getValue().getTerminalInfo().getProbability().toString().substring(0, 7));
 		}
 
+		normalize(this.letterMarkovModel);
+
 		return this.letterMarkovModel;
+	}
+
+	/**
+	 * A concurrent task for normalizing a Markov model node.
+	 */
+	protected class NormalizeTask implements Callable<Void> {
+		private NGramIndexNode	node;
+		private long			total;
+
+		/**
+		 * @param node
+		 *            the NGramIndexNode to set
+		 * @param total
+		 *            the total to set
+		 */
+		public NormalizeTask(NGramIndexNode node, long total) {
+			this.node = node;
+			this.total = total;
+		}
+
+		@Override
+		public Void call() throws Exception {
+			normalizeTerminal(this.node, this.total);
+
+			return null;
+		}
+	}
+
+	protected void normalizeTerminal(NGramIndexNode node, long total) {
+		if (node.getTerminalInfo() != null && node.getTerminalInfo().getLevel() == this.letterMarkovModel.getOrder()) {
+			node.getTerminalInfo().setProbability(new BigDecimal(
+					node.getTerminalInfo().getCount()).divide(new BigDecimal(total), MathContext.DECIMAL128));
+
+			return;
+		}
+
+		Map<Character, NGramIndexNode> transitions = node.getTransitions();
+
+		if (transitions == null || transitions.isEmpty()) {
+			return;
+		}
+
+		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
+			normalizeTerminal(entry.getValue(), total);
+		}
+	}
+
+	protected void normalize(MarkovModel markovModel) {
+		List<FutureTask<Void>> futures = new ArrayList<FutureTask<Void>>(26);
+		FutureTask<Void> task;
+
+		for (Map.Entry<Character, NGramIndexNode> entry : markovModel.getRootNode().getTransitions().entrySet()) {
+			if (entry.getValue() != null) {
+				// Add one for unknown words
+				task = new FutureTask<Void>(new NormalizeTask(entry.getValue(),
+						markovModel.getRootNode().getTerminalInfo().getCount() + 1));
+				futures.add(task);
+				this.taskExecutor.execute(task);
+			}
+		}
+
+		for (FutureTask<Void> future : futures) {
+			try {
+				future.get();
+			} catch (InterruptedException ie) {
+				log.error("Caught InterruptedException while waiting for NormalizeTask ", ie);
+			} catch (ExecutionException ee) {
+				log.error("Caught ExecutionException while waiting for NormalizeTask ", ee);
+			}
+		}
 	}
 
 	/**
