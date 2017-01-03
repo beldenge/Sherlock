@@ -2,13 +2,18 @@ package com.ciphertool.sherlock.dto;
 
 public class ParseResults {
 	private long	total;
+	private long	orderTotal;
 	private long	unique;
 
 	/**
 	 * @param total
+	 *            the total count
+	 * @param orderTotal
+	 *            the orderTotal count
 	 * @param unique
+	 *            the unique count
 	 */
-	public ParseResults(long total, long unique) {
+	public ParseResults(long total, long orderTotal, long unique) {
 		this.total = total;
 		this.unique = unique;
 	}
@@ -18,6 +23,13 @@ public class ParseResults {
 	 */
 	public long getTotal() {
 		return total;
+	}
+
+	/**
+	 * @return the orderTotal
+	 */
+	public long getOrderTotal() {
+		return orderTotal;
 	}
 
 	/**

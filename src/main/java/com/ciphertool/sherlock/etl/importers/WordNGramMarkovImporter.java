@@ -123,8 +123,6 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 		if (node.getTerminalInfo() != null) {
 			node.getTerminalInfo().setProbability(new BigDecimal(
 					node.getTerminalInfo().getCount()).divide(new BigDecimal(total), MathContext.DECIMAL128));
-
-			return;
 		}
 
 		Map<Character, NGramIndexNode> transitions = node.getTransitions();
@@ -211,7 +209,7 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);
 			}
 
-			return new ParseResults(total, unique);
+			return new ParseResults(total, total, unique);
 		}
 	}
 

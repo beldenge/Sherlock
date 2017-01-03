@@ -27,11 +27,14 @@ public class NGramIndexNode {
 	private static final Pattern			LOWERCASE_LETTERS	= Pattern.compile("[a-z]");
 	private Map<Character, NGramIndexNode>	transitions;
 	private TerminalInfo					terminalInfo;
+	private NGramIndexNode					parent;
 
-	public NGramIndexNode() {
+	public NGramIndexNode(NGramIndexNode parent) {
+		this.parent = parent;
 	}
 
-	public NGramIndexNode(TerminalInfo terminalInfo) {
+	public NGramIndexNode(NGramIndexNode parent, TerminalInfo terminalInfo) {
+		this.parent = parent;
 		this.terminalInfo = terminalInfo;
 	}
 
@@ -49,7 +52,8 @@ public class NGramIndexNode {
 		boolean isNew = false;
 
 		if (child == null) {
-			this.putChild(firstLetter, isTerminal ? new NGramIndexNode(new TerminalInfo(level)) : new NGramIndexNode());
+			this.putChild(firstLetter, isTerminal ? new NGramIndexNode(this, new TerminalInfo(
+					level)) : new NGramIndexNode(this));
 
 			if (isTerminal) {
 				isNew = true;
@@ -105,5 +109,17 @@ public class NGramIndexNode {
 	 */
 	public void setTerminalInfo(TerminalInfo terminalInfo) {
 		this.terminalInfo = terminalInfo;
+	}
+
+	public String getCumulativeStringValue() {
+		if (this.parent != null) {
+			for (Map.Entry<Character, NGramIndexNode> entry : this.parent.transitions.entrySet()) {
+				if (entry.getValue() == this) {
+					return this.parent.getCumulativeStringValue() + "" + entry.getKey().toString();
+				}
+			}
+		}
+
+		return "";
 	}
 }

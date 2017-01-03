@@ -69,12 +69,14 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 		List<FutureTask<ParseResults>> futures = parseFiles(Paths.get(this.corpusDirectory));
 		ParseResults parseResults;
 		long total = 0L;
+		long orderTotal = 0L;
 		long unique = 0L;
 
 		for (FutureTask<ParseResults> future : futures) {
 			try {
 				parseResults = future.get();
 				total += parseResults.getTotal();
+				orderTotal += parseResults.getOrderTotal();
 				unique += parseResults.getUnique();
 			} catch (InterruptedException ie) {
 				log.error("Caught InterruptedException while waiting for ParseFileTask ", ie);
@@ -95,7 +97,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 					+ entry.getValue().getTerminalInfo().getConditionalProbability().toString().substring(0, Math.min(7, entry.getValue().getTerminalInfo().getConditionalProbability().toString().length())));
 		}
 
-		normalize(this.letterMarkovModel);
+		normalize(this.letterMarkovModel, orderTotal);
 
 		return this.letterMarkovModel;
 	}
@@ -145,15 +147,14 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 		}
 	}
 
-	protected void normalize(MarkovModel markovModel) {
+	protected void normalize(MarkovModel markovModel, long orderTotal) {
 		List<FutureTask<Void>> futures = new ArrayList<FutureTask<Void>>(26);
 		FutureTask<Void> task;
 
 		for (Map.Entry<Character, NGramIndexNode> entry : markovModel.getRootNode().getTransitions().entrySet()) {
 			if (entry.getValue() != null) {
 				// Add one for unknown words
-				task = new FutureTask<Void>(new NormalizeTask(entry.getValue(),
-						markovModel.getRootNode().getTerminalInfo().getCount() + 1));
+				task = new FutureTask<Void>(new NormalizeTask(entry.getValue(), orderTotal + 1));
 				futures.add(task);
 				this.taskExecutor.execute(task);
 			}
@@ -190,6 +191,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 			int order = letterMarkovModel.getOrder();
 			long total = 0;
+			long orderTotal = 0;
 			long unique = 0;
 
 			try {
@@ -210,13 +212,17 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 						unique += (letterMarkovModel.addLetterTransition(nGramString) ? 1 : 0);
 						total++;
+
+						if (nGramString.length() == order) {
+							orderTotal++;
+						}
 					}
 				}
 			} catch (IOException ioe) {
 				log.error("Unable to parse file: " + this.path.toString(), ioe);
 			}
 
-			return new ParseResults(total, unique);
+			return new ParseResults(total, orderTotal, unique);
 		}
 	}
 

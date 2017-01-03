@@ -41,7 +41,7 @@ public class MarkovModel {
 			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
 			'z' });
 
-	private NGramIndexNode					rootNode			= new NGramIndexNode();
+	private NGramIndexNode					rootNode			= new NGramIndexNode(null);
 	private boolean							postProcessed		= false;
 	private Integer							order;
 	private TaskExecutor					taskExecutor;
