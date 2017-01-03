@@ -92,7 +92,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 		for (Map.Entry<Character, NGramIndexNode> entry : this.letterMarkovModel.getRootNode().getTransitions().entrySet()) {
 			log.info(entry.getKey().toString() + ": "
-					+ entry.getValue().getTerminalInfo().getProbability().toString().substring(0, 7));
+					+ entry.getValue().getTerminalInfo().getConditionalProbability().toString().substring(0, Math.min(7, entry.getValue().getTerminalInfo().getConditionalProbability().toString().length())));
 		}
 
 		normalize(this.letterMarkovModel);
