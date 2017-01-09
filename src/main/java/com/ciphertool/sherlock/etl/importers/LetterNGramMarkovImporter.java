@@ -21,7 +21,6 @@ package com.ciphertool.sherlock.etl.importers;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.task.TaskExecutor;
 
+import com.ciphertool.sherlock.MathConstants;
 import com.ciphertool.sherlock.dto.ParseResults;
 import com.ciphertool.sherlock.markov.MarkovModel;
 import com.ciphertool.sherlock.markov.NGramIndexNode;
@@ -130,8 +130,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 	protected void normalizeTerminal(NGramIndexNode node, long total) {
 		if (node.getTerminalInfo() != null && node.getTerminalInfo().getLevel() == this.letterMarkovModel.getOrder()) {
-			node.getTerminalInfo().setProbability(new BigDecimal(
-					node.getTerminalInfo().getCount()).divide(new BigDecimal(total), MathContext.DECIMAL32));
+			node.getTerminalInfo().setProbability(BigDecimal.valueOf(node.getTerminalInfo().getCount()).divide(BigDecimal.valueOf(total), MathConstants.PREC_10_HALF_UP));
 
 			return;
 		}

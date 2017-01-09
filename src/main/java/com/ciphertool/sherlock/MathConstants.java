@@ -19,8 +19,9 @@
 
 package com.ciphertool.sherlock;
 
-public class DatabaseConstants {
-	public static final String	NGRAM_COLLECTION			= "nGram";
+import java.math.MathContext;
+import java.math.RoundingMode;
 
-	public static final String	PARTS_OF_SPEECH_COLLECTION	= "partsOfSpeech";
+public class MathConstants {
+	public static final MathContext PREC_10_HALF_UP = new MathContext(10, RoundingMode.HALF_UP);
 }

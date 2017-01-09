@@ -20,7 +20,6 @@
 package com.ciphertool.sherlock.markov;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.task.TaskExecutor;
+
+import com.ciphertool.sherlock.MathConstants;
 
 public class MarkovModel {
 	private static Logger					log					= LoggerFactory.getLogger(MarkovModel.class);
@@ -227,8 +228,7 @@ public class MarkovModel {
 	}
 
 	protected void normalize(NGramIndexNode node, long parentCount) {
-		node.getTerminalInfo().setConditionalProbability(new BigDecimal(
-				node.getTerminalInfo().getCount()).divide(new BigDecimal(parentCount), MathContext.DECIMAL32));
+		node.getTerminalInfo().setConditionalProbability(BigDecimal.valueOf(node.getTerminalInfo().getCount()).divide(BigDecimal.valueOf(parentCount), MathConstants.PREC_10_HALF_UP));
 
 		Map<Character, NGramIndexNode> transitions = node.getTransitions();
 

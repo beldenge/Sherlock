@@ -21,6 +21,8 @@ package com.ciphertool.sherlock.markov;
 
 import java.math.BigDecimal;
 
+import org.nevec.rjm.BigDecimalMath;
+
 public class TerminalInfo {
 	private int			level	= 0;
 	private long		count	= 0L;
@@ -86,7 +88,7 @@ public class TerminalInfo {
 		}
 
 		if (logProbability == null) {
-			this.logProbability = BigDecimal.valueOf(Math.log10(this.probability.doubleValue()));
+			this.logProbability = BigDecimalMath.log(this.probability);
 		}
 
 		return this.logProbability;
