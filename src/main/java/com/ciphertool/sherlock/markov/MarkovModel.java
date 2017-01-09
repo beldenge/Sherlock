@@ -228,7 +228,7 @@ public class MarkovModel {
 
 	protected void normalize(NGramIndexNode node, long parentCount) {
 		node.getTerminalInfo().setConditionalProbability(new BigDecimal(
-				node.getTerminalInfo().getCount()).divide(new BigDecimal(parentCount), MathContext.DECIMAL128));
+				node.getTerminalInfo().getCount()).divide(new BigDecimal(parentCount), MathContext.DECIMAL32));
 
 		Map<Character, NGramIndexNode> transitions = node.getTransitions();
 

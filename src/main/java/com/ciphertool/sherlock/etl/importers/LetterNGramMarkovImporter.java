@@ -131,7 +131,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 	protected void normalizeTerminal(NGramIndexNode node, long total) {
 		if (node.getTerminalInfo() != null && node.getTerminalInfo().getLevel() == this.letterMarkovModel.getOrder()) {
 			node.getTerminalInfo().setProbability(new BigDecimal(
-					node.getTerminalInfo().getCount()).divide(new BigDecimal(total), MathContext.DECIMAL128));
+					node.getTerminalInfo().getCount()).divide(new BigDecimal(total), MathContext.DECIMAL32));
 
 			return;
 		}
