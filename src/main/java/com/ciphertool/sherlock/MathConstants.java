@@ -23,5 +23,5 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 public class MathConstants {
-	public static final MathContext PREC_10_HALF_UP = new MathContext(10, RoundingMode.HALF_UP);
+	public static final MathContext PREC_10_HALF_UP = new MathContext(8, RoundingMode.HALF_UP);
 }
