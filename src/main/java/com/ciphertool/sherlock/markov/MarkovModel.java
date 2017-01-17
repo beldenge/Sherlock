@@ -270,6 +270,33 @@ public class MarkovModel {
 	 *            the N-Gram String to search by
 	 * @return the longest matching NGramIndexNode
 	 */
+	public NGramIndexNode find(String nGram) {
+		return findMatch(rootNode, nGram);
+	}
+
+	protected static NGramIndexNode findMatch(NGramIndexNode node, String nGramString) {
+		NGramIndexNode nextNode = node.getChild(nGramString.charAt(0));
+
+		if (nextNode == null) {
+			return null;
+		}
+
+		if (nGramString.length() == 1) {
+			if (nextNode.getTerminalInfo() != null) {
+				return nextNode;
+			}
+
+			return null;
+		}
+
+		return findMatch(nextNode, nGramString.substring(1));
+	}
+
+	/**
+	 * @param nGram
+	 *            the N-Gram String to search by
+	 * @return the longest matching NGramIndexNode
+	 */
 	public NGramIndexNode findLongest(String nGram) {
 		return findLongestMatch(rootNode, nGram, null);
 	}
