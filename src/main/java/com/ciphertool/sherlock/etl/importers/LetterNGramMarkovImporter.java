@@ -90,7 +90,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 		this.letterMarkovModel.getRootNode().setTerminalInfo(new TerminalInfo(0, total));
 
-		this.letterMarkovModel.postProcess(this.minCount, true, true);
+		this.letterMarkovModel.postProcess(true, true);
 
 		for (Map.Entry<Character, NGramIndexNode> entry : this.letterMarkovModel.getRootNode().getTransitions().entrySet()) {
 			log.info(entry.getKey().toString() + ": "
@@ -99,7 +99,38 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 		normalize(this.letterMarkovModel, orderTotal);
 
+		if (minCount > 1) {
+			removeOutliers(this.letterMarkovModel.getRootNode(), this.minCount);
+		}
+
 		return this.letterMarkovModel;
+	}
+
+	protected void removeOutliers(NGramIndexNode node, int minCount) {
+		Map<Character, NGramIndexNode> transitions = node.getTransitions();
+
+		List<Character> keysToRemove = new ArrayList<Character>();
+		TerminalInfo terminalInfo;
+
+		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
+			if (entry.getValue() == null) {
+				continue;
+			}
+
+			terminalInfo = entry.getValue().getTerminalInfo();
+
+			if (terminalInfo != null && terminalInfo.getCount() < minCount) {
+				keysToRemove.add(entry.getKey());
+
+				continue;
+			}
+
+			removeOutliers(entry.getValue(), minCount);
+		}
+
+		for (Character key : keysToRemove) {
+			transitions.remove(key);
+		}
 	}
 
 	/**

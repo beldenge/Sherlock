@@ -46,6 +46,7 @@ public class MarkovModel {
 	private boolean							postProcessed		= false;
 	private Integer							order;
 	private TaskExecutor					taskExecutor;
+	private Long							numWithCountOfOne;
 
 	/**
 	 * A concurrent task for normalizing a Markov model node.
@@ -134,7 +135,7 @@ public class MarkovModel {
 		return isNew;
 	}
 
-	public void postProcess(int minCount, boolean normalize, boolean linkChildren) {
+	public void postProcess(boolean normalize, boolean linkChildren) {
 		if (postProcessed) {
 			return;
 		}
@@ -169,10 +170,6 @@ public class MarkovModel {
 			}
 		}
 
-		if (minCount > 1) {
-			removeOutliers(this.getRootNode(), minCount);
-		}
-
 		if (linkChildren) {
 			futures = new ArrayList<FutureTask<Void>>(26);
 
@@ -198,33 +195,6 @@ public class MarkovModel {
 		postProcessed = true;
 
 		log.info("Time elapsed: " + (System.currentTimeMillis() - start) + "ms");
-	}
-
-	protected void removeOutliers(NGramIndexNode node, int minCount) {
-		Map<Character, NGramIndexNode> transitions = node.getTransitions();
-
-		List<Character> keysToRemove = new ArrayList<Character>();
-		TerminalInfo terminalInfo;
-
-		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
-			if (entry.getValue() == null) {
-				continue;
-			}
-
-			terminalInfo = entry.getValue().getTerminalInfo();
-
-			if (terminalInfo != null && terminalInfo.getCount() < minCount) {
-				keysToRemove.add(entry.getKey());
-
-				continue;
-			}
-
-			removeOutliers(entry.getValue(), minCount);
-		}
-
-		for (Character key : keysToRemove) {
-			transitions.remove(key);
-		}
 	}
 
 	protected void normalize(NGramIndexNode node, long parentCount) {
@@ -383,6 +353,21 @@ public class MarkovModel {
 				appendTransitions(parent + entry.getKey(), entry.getKey(), entry.getValue(), sb);
 			}
 		}
+	}
+
+	/**
+	 * @return the numWithCountOfOne
+	 */
+	public Long getNumWithCountOfOne() {
+		return numWithCountOfOne;
+	}
+
+	/**
+	 * @param numWithCountOfOne
+	 *            the numWithCountOfOne to set
+	 */
+	public void setNumWithCountOfOne(Long numWithCountOfOne) {
+		this.numWithCountOfOne = numWithCountOfOne;
 	}
 
 	/**

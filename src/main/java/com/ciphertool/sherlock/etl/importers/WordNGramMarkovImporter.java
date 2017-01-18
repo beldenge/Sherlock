@@ -53,7 +53,6 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 	private static final String	NON_WHITESPACE_AND_ALPHA	= "[^a-z\\s]";
 
 	private String				corpusDirectory;
-	private Integer				minCount;
 	private TaskExecutor		taskExecutor;
 	private MarkovModel			wordMarkovModel;
 
@@ -86,9 +85,11 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 
 		this.wordMarkovModel.getRootNode().setTerminalInfo(new TerminalInfo(0, total));
 
-		this.wordMarkovModel.postProcess(this.minCount, false, false);
+		this.wordMarkovModel.postProcess(false, false);
 
 		normalize(this.wordMarkovModel);
+
+		this.wordMarkovModel.setNumWithCountOfOne(removeCountOfOne(this.wordMarkovModel.getRootNode()));
 
 		return this.wordMarkovModel;
 	}
@@ -158,6 +159,34 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 				log.error("Caught ExecutionException while waiting for NormalizeTask ", ee);
 			}
 		}
+	}
+
+	protected long removeCountOfOne(NGramIndexNode node) {
+		int removedCount = 0;
+		long total = 0L;
+		Map<Character, NGramIndexNode> transitions = node.getTransitions();
+
+		TerminalInfo terminalInfo;
+
+		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
+			if (entry.getValue() == null) {
+				continue;
+			}
+
+			terminalInfo = entry.getValue().getTerminalInfo();
+
+			if (terminalInfo != null && terminalInfo.getCount() == 1) {
+				log.debug(entry.getValue().getCumulativeStringValue());
+
+				entry.getValue().setTerminalInfo(null);
+
+				removedCount++;
+			}
+
+			total += removeCountOfOne(entry.getValue());
+		}
+
+		return total + removedCount;
 	}
 
 	/**
@@ -259,15 +288,6 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 	@Required
 	public void setCorpusDirectory(String corpusDirectory) {
 		this.corpusDirectory = corpusDirectory;
-	}
-
-	/**
-	 * @param minCount
-	 *            the minCount to set
-	 */
-	@Required
-	public void setMinCount(Integer minCount) {
-		this.minCount = minCount;
 	}
 
 	/**
