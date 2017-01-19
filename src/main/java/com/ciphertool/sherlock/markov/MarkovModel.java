@@ -238,7 +238,7 @@ public class MarkovModel {
 	/**
 	 * @param nGram
 	 *            the N-Gram String to search by
-	 * @return the longest matching NGramIndexNode
+	 * @return the exact matching NGramIndexNode
 	 */
 	public NGramIndexNode find(String nGram) {
 		return findMatch(rootNode, nGram);
