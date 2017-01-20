@@ -52,7 +52,6 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 	private static final String	NON_ALPHA	= "[^a-zA-Z]";
 
 	private String				corpusDirectory;
-	private Integer				minCount;
 	private TaskExecutor		taskExecutor;
 	private MarkovModel			letterMarkovModel;
 
@@ -87,7 +86,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 		this.letterMarkovModel.getRootNode().setTerminalInfo(new TerminalInfo(0, total));
 
-		this.letterMarkovModel.postProcess(true, true);
+		this.letterMarkovModel.postProcess(true, false);
 
 		for (Map.Entry<Character, NGramIndexNode> entry : this.letterMarkovModel.getRootNode().getTransitions().entrySet()) {
 			log.info(entry.getKey().toString() + ": "
@@ -96,9 +95,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 		normalize(this.letterMarkovModel, orderTotal);
 
-		if (minCount > 1) {
-			removeOutliers(this.letterMarkovModel.getRootNode(), this.minCount);
-		}
+		this.letterMarkovModel.setNumWithCountOfOne(removeCountOfOne(this.letterMarkovModel.getRootNode()));
 
 		return this.letterMarkovModel;
 	}
@@ -180,8 +177,7 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 
 		for (Map.Entry<Character, NGramIndexNode> entry : markovModel.getRootNode().getTransitions().entrySet()) {
 			if (entry.getValue() != null) {
-				// Add one for unknown words
-				task = new FutureTask<Void>(new NormalizeTask(entry.getValue(), orderTotal + 1));
+				task = new FutureTask<Void>(new NormalizeTask(entry.getValue(), orderTotal));
 				futures.add(task);
 				this.taskExecutor.execute(task);
 			}
@@ -196,6 +192,34 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 				log.error("Caught ExecutionException while waiting for NormalizeTask ", ee);
 			}
 		}
+	}
+
+	protected long removeCountOfOne(NGramIndexNode node) {
+		int removedCount = 0;
+		long total = 0L;
+		Map<Character, NGramIndexNode> transitions = node.getTransitions();
+
+		TerminalInfo terminalInfo;
+
+		for (Map.Entry<Character, NGramIndexNode> entry : transitions.entrySet()) {
+			if (entry.getValue() == null) {
+				continue;
+			}
+
+			terminalInfo = entry.getValue().getTerminalInfo();
+
+			if (terminalInfo != null && terminalInfo.getCount() == 1) {
+				log.debug(entry.getValue().getCumulativeStringValue());
+
+				entry.getValue().setTerminalInfo(null);
+
+				removedCount++;
+			}
+
+			total += removeCountOfOne(entry.getValue());
+		}
+
+		return total + removedCount;
 	}
 
 	/**
@@ -296,15 +320,6 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 	@Required
 	public void setCorpusDirectory(String corpusDirectory) {
 		this.corpusDirectory = corpusDirectory;
-	}
-
-	/**
-	 * @param minCount
-	 *            the minCount to set
-	 */
-	@Required
-	public void setMinCount(Integer minCount) {
-		this.minCount = minCount;
 	}
 
 	/**

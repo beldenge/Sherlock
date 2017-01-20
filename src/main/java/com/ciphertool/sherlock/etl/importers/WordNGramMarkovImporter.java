@@ -142,9 +142,8 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 
 		for (Map.Entry<Character, NGramIndexNode> entry : markovModel.getRootNode().getTransitions().entrySet()) {
 			if (entry.getValue() != null) {
-				// Add one for unknown words
 				task = new FutureTask<Void>(new NormalizeTask(entry.getValue(),
-						markovModel.getRootNode().getTerminalInfo().getCount() + 1));
+						markovModel.getRootNode().getTerminalInfo().getCount()));
 				futures.add(task);
 				this.taskExecutor.execute(task);
 			}
