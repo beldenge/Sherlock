@@ -117,7 +117,7 @@ public class MarkovModel {
 			return populateLetterNode(currentNode.getChild(firstLetter), nGramString.substring(1), level + 1);
 		}
 
-		return isNew;
+		return isNew && level == this.order;
 	}
 
 	protected boolean populateWordNode(NGramIndexNode currentNode, String nGramString, Integer level) {
