@@ -50,7 +50,7 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 
 	private static final String	EXTENSION					= ".txt";
 	private static final String	WHITESPACE					= "[\\s]+";
-	private static final String	NON_WHITESPACE_AND_ALPHA	= "[^a-z\\s]";
+	private static final String	NON_WHITESPACE_AND_ALPHA	= "[^a-zA-Z\\s]";
 
 	private String				corpusDirectory;
 	private TaskExecutor		taskExecutor;
@@ -215,7 +215,7 @@ public class WordNGramMarkovImporter implements MarkovImporter {
 			try {
 				String content = new String(Files.readAllBytes(this.path));
 
-				content = content.toLowerCase().replaceAll(NON_WHITESPACE_AND_ALPHA, "");
+				content = content.replaceAll(NON_WHITESPACE_AND_ALPHA, "").toLowerCase();
 
 				String[] words = content.split(WHITESPACE);
 

@@ -101,35 +101,32 @@ public class MarkovModel {
 	}
 
 	public boolean addLetterTransition(String nGramString) {
-		return populateLetterNode(rootNode, nGramString, true, 1);
+		return populateLetterNode(rootNode, nGramString, 1);
 	}
 
 	public boolean addWordTransition(String nGramString, int level) {
-		return populateWordNode(rootNode, nGramString, false, level);
+		return populateWordNode(rootNode, nGramString, level);
 	}
 
-	protected boolean populateLetterNode(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal, Integer level) {
+	protected boolean populateLetterNode(NGramIndexNode currentNode, String nGramString, Integer level) {
 		Character firstLetter = nGramString.charAt(0);
 
-		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, level, alwaysTerminal
-				|| nGramString.length() == 1);
+		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, level, true);
 
 		if (nGramString.length() > 1) {
-			return populateLetterNode(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal, level
-					+ 1);
+			return populateLetterNode(currentNode.getChild(firstLetter), nGramString.substring(1), level + 1);
 		}
 
 		return isNew;
 	}
 
-	protected boolean populateWordNode(NGramIndexNode currentNode, String nGramString, boolean alwaysTerminal, Integer level) {
+	protected boolean populateWordNode(NGramIndexNode currentNode, String nGramString, Integer level) {
 		Character firstLetter = nGramString.charAt(0);
 
-		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, level, alwaysTerminal
-				|| nGramString.length() == 1);
+		boolean isNew = currentNode.addOrIncrementChildAsync(firstLetter, level, nGramString.length() == 1);
 
 		if (nGramString.length() > 1) {
-			return populateWordNode(currentNode.getChild(firstLetter), nGramString.substring(1), alwaysTerminal, level);
+			return populateWordNode(currentNode.getChild(firstLetter), nGramString.substring(1), level);
 		}
 
 		return isNew;

@@ -47,17 +47,15 @@ import com.ciphertool.sherlock.markov.NGramIndexNode;
 import com.ciphertool.sherlock.markov.TerminalInfo;
 
 public class LetterNGramMarkovImporter implements MarkovImporter {
-	private static Logger			log									= LoggerFactory.getLogger(LetterNGramMarkovImporter.class);
+	private static Logger		log			= LoggerFactory.getLogger(LetterNGramMarkovImporter.class);
 
-	private static final String		EXTENSION							= ".txt";
-	private static final String		NON_ALPHA							= ".*[^a-z].*";
-	private static final String		WHITESPACE_AND_INTRA_SENTENCE_PUNC	= "[\\s-,;()`'\"]";
-	private static final Pattern	PATTERN								= Pattern.compile(NON_ALPHA);
+	private static final String	EXTENSION	= ".txt";
+	private static final String	NON_ALPHA	= "[^a-zA-Z]";
 
-	private String					corpusDirectory;
-	private Integer					minCount;
-	private TaskExecutor			taskExecutor;
-	private MarkovModel				letterMarkovModel;
+	private String				corpusDirectory;
+	private Integer				minCount;
+	private TaskExecutor		taskExecutor;
+	private MarkovModel			letterMarkovModel;
 
 	@Override
 	@PostConstruct
@@ -231,14 +229,10 @@ public class LetterNGramMarkovImporter implements MarkovImporter {
 				String[] sentences = content.split("(\n|\r|\r\n)+");
 
 				for (int i = 0; i < sentences.length; i++) {
-					sentence = sentences[i].toLowerCase().replaceAll(WHITESPACE_AND_INTRA_SENTENCE_PUNC, "");
+					sentence = sentences[i].replaceAll(NON_ALPHA, "").toLowerCase();
 
 					for (int j = 0; j < sentence.length(); j++) {
 						String nGramString = sentence.substring(j, j + Math.min(order, sentence.length() - j));
-
-						if (PATTERN.matcher(nGramString).matches()) {
-							continue;
-						}
 
 						unique += (letterMarkovModel.addLetterTransition(nGramString) ? 1 : 0);
 						total++;
