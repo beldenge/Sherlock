@@ -104,7 +104,7 @@ You should have received a copy of the GNU General Public License along with She
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
-			<version>4.3.21.RELEASE</version>
+			<version>5.2.22.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
